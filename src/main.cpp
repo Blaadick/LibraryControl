@@ -1,14 +1,14 @@
 #include <iostream>
 #include <string>
-#include "Books.hpp"
-#include "Users.hpp"
+#include "Library.hpp"
+#include "User.hpp"
+
+using namespace std;
 
 int main() {
-    const Books books;
-    const Users users;
+    Library library;
 
-    std::string title, author, publishDate;
-    std::cin >> title >> author >> publishDate;
-
-    books.addItem(title, author, publishDate);
+    for(auto i = 1; i < 6; i++) {
+        cout << Library::getUser(i).toString() << endl;
+    }
 }
