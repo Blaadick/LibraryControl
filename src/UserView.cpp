@@ -1,0 +1,27 @@
+#include "UserView.hpp"
+
+#include <format>
+
+using namespace std;
+
+UserView::UserView(const string& name, const string& phoneNumber, const string& passportId) {
+    this->name = name;
+    this->phoneNumber = phoneNumber;
+    this->passportId = passportId;
+}
+
+const string& UserView::getName() const {
+    return name;
+}
+
+const string& UserView::getPhoneNumber() const {
+    return phoneNumber;
+}
+
+const string& UserView::getPassportId() const {
+    return passportId;
+}
+
+string UserView::toString() const {
+    return format("│ {:<16} │ {:<13} │ {:10} │", name, phoneNumber, passportId);
+}
