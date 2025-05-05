@@ -6,7 +6,8 @@
 #include "BookView.hpp"
 #include "UserView.hpp"
 
-using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>;
+namespace t = std::chrono;
+using t_point = t::time_point<t::system_clock, t::seconds>;
 
 class Library {
 public:
@@ -14,11 +15,11 @@ public:
 
     ~Library();
 
-    static void addBook(const std::string& title, const std::string& author, const std::string& publishDate);
+    static void addBook(const std::string& title, const std::string& author, const std::string& publishTime);
 
     static void addUser(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
 
-    static void giveBook(int userId, int bookId, time_point issueTime = floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+    static void openContract(int userId, int bookId, t::days contractDuration, t_point openingTime);
 
     static void removeBook(int id);
 
@@ -26,9 +27,17 @@ public:
 
     static void closeContract(int id);
 
-    static std::vector<BookView> findBooks(const std::string& title, const std::string& author = "", const std::string& publishDate = "");
+    static std::vector<BookView> findBooks(
+        const std::string& title,
+        const std::string& author = "",
+        const std::string& publishTime = ""
+    );
 
-    static std::vector<UserView> findUsers(const std::string& name, const std::string& phoneNumber = "", const std::string& passportId = "");
+    static std::vector<UserView> findUsers(
+        const std::string& name,
+        const std::string& phoneNumber = "",
+        const std::string& passportId = ""
+    );
 
 private:
     static sqlite3* db;

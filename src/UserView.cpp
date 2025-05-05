@@ -10,18 +10,6 @@ UserView::UserView(const string& name, const string& phoneNumber, const string& 
     this->passportId = passportId;
 }
 
-const string& UserView::getName() const {
-    return name;
-}
-
-const string& UserView::getPhoneNumber() const {
-    return phoneNumber;
-}
-
-const string& UserView::getPassportId() const {
-    return passportId;
-}
-
 string UserView::toString() const {
     return format("│ {:<16} │ {:<13} │ {:10} │", name, phoneNumber, passportId);
 }
