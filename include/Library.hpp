@@ -6,6 +6,8 @@
 #include "BookView.hpp"
 #include "UserView.hpp"
 
+using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>;
+
 class Library {
 public:
     Library();
@@ -16,15 +18,13 @@ public:
 
     static void addUser(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
 
+    static void giveBook(int userId, int bookId, time_point issueTime = floor<std::chrono::seconds>(std::chrono::system_clock::now()));
+
     static void removeBook(int id);
 
     static void removeUser(int id);
 
     static void closeContract(int id);
-
-    static UserView getUser(int id);
-
-    static BookView getBook(int id);
 
     static std::vector<BookView> findBooks(const std::string& title, const std::string& author = "", const std::string& publishDate = "");
 
