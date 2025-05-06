@@ -5,8 +5,8 @@
 #include <sqlite/sqlite3.h>
 #include "BookView.hpp"
 #include "ContractView.hpp"
-#include "CustomTime.hpp"
 #include "UserView.hpp"
+#include "Util.hpp"
 
 class Library {
 public:
@@ -14,11 +14,11 @@ public:
 
     ~Library();
 
-    static void addBook(const std::string& title, const std::string& author, const std::string& publishTime);
+    static void addBook(const std::string& title, const std::string& author, const std::string& publishDate);
 
     static void addUser(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
 
-    static void openContract(int userId, int bookId, t::days contractDuration, t_point openingTime);
+    static void openContract(int userId, int bookId, std::chrono::days contractDuration, DateTime openingTime);
 
     static void removeBook(int id);
 
@@ -31,18 +31,18 @@ public:
     static BookView getBook(int id);
 
     static std::vector<BookView> findBooks(
-        const std::string& title = "",
-        const std::string& author = "",
-        const std::string& publishTime = ""
+        const std::string& title,
+        const std::string& author,
+        const std::string& publishDate
     );
 
     static std::vector<UserView> findUsers(
-        const std::string& name = "",
-        const std::string& phoneNumber = "",
-        const std::string& passportId = ""
+        const std::string& name,
+        const std::string& phoneNumber,
+        const std::string& passportId
     );
 
-    static std::vector<ContractView> findActiveContracts(int userId = 0, int bookId = 0, const t_point& openingTime = std::numeric_limits<t_point>::max());
+    static std::vector<ContractView> findOpenedContracts(int userId, int bookId, const std::string& openingTime);
 
 private:
     static sqlite3* db;

@@ -1,14 +1,19 @@
 #include "BookView.hpp"
 
-using namespace std;
-using namespace chrono;
+#include <format>
 
-BookView::BookView(const string& title, const string& author, const int publishTimeStamp) {
-    this->publishTime = t_point(seconds(publishTimeStamp));
+using namespace std;
+
+BookView::BookView(const string& title, const string& author, const Date& publishDate) {
+    this->publishDate = publishDate;
     this->title = title;
     this->author = author;
 }
 
+const std::string& BookView::getTitle() const {
+    return title;
+}
+
 std::string BookView::toString() const {
-    return format("│ {:<32} │ {:<16} │ {:%Y.%m.%d} │", title, author, publishTime);
+    return format("│ {:<32} │ {:<16} │ {} │", title, author, publishDate);
 }

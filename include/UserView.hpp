@@ -6,6 +6,8 @@ class UserView {
 public:
     UserView(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
 
+    const std::string& getName() const;
+
     std::string toString() const;
 
 private:
