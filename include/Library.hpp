@@ -4,10 +4,9 @@
 #include <vector>
 #include <sqlite/sqlite3.h>
 #include "BookView.hpp"
+#include "ContractView.hpp"
+#include "CustomTime.hpp"
 #include "UserView.hpp"
-
-namespace t = std::chrono;
-using t_point = t::time_point<t::system_clock, t::seconds>;
 
 class Library {
 public:
@@ -27,17 +26,23 @@ public:
 
     static void closeContract(int id);
 
+    static UserView getUser(int id);
+
+    static BookView getBook(int id);
+
     static std::vector<BookView> findBooks(
-        const std::string& title,
+        const std::string& title = "",
         const std::string& author = "",
         const std::string& publishTime = ""
     );
 
     static std::vector<UserView> findUsers(
-        const std::string& name,
+        const std::string& name = "",
         const std::string& phoneNumber = "",
         const std::string& passportId = ""
     );
+
+    static std::vector<ContractView> findActiveContracts(int userId = 0, int bookId = 0, const t_point& openingTime = std::numeric_limits<t_point>::max());
 
 private:
     static sqlite3* db;

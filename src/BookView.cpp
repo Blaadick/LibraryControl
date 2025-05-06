@@ -1,11 +1,10 @@
 #include "BookView.hpp"
 
 using namespace std;
+using namespace chrono;
 
-BookView::BookView(const string& title, const string& author, const string& publishTime) {
-    chrono::year_month_day ymd{};
-    istringstream(publishTime) >> chrono::parse("%F", ymd);
-    this->publishTime = chrono::sys_days(ymd);
+BookView::BookView(const string& title, const string& author, const int publishTimeStamp) {
+    this->publishTime = t_point(seconds(publishTimeStamp));
     this->title = title;
     this->author = author;
 }

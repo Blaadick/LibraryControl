@@ -2,15 +2,16 @@
 
 #include <chrono>
 #include <string>
+#include "CustomTime.hpp"
 
 class BookView {
 public:
-    BookView(const std::string& title, const std::string& author, const std::string& publishTime);
+    BookView(const std::string& title, const std::string& author, int publishTimeStamp);
 
     std::string toString() const;
 
 private:
     std::string title;
     std::string author;
-    std::chrono::sys_days publishTime;
+    t_point publishTime;
 };

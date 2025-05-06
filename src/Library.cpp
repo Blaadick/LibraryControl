@@ -1,15 +1,17 @@
 #include "Library.hpp"
 
 #include <iostream>
-
+#include <filesystem>
 #include "ContractView.hpp"
+#include "FileManager.hpp"
 #include "UserView.hpp"
 
 using namespace std;
 using namespace chrono;
+using namespace filesystem;
 
 Library::Library() {
-    sqlite3_open("library.db", &db);
+    sqlite3_open((FileManager::getLocalDir() / "library.db").c_str(), &db);
 
     simpleQuery(R"(
         CREATE TABLE IF NOT EXISTS Books(
@@ -130,6 +132,40 @@ void Library::closeContract(const int id) {
     sqlite3_finalize(stmt);
 }
 
+UserView Library::getUser(const int id) {
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, "SELECT * FROM Users WHERE ID = ?;", -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_step(stmt);
+
+    UserView userView(
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)),
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3))
+    );
+
+    sqlite3_finalize(stmt);
+
+    return userView;
+}
+
+BookView Library::getBook(const int id) {
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, "SELECT * FROM Books WHERE ID = ?;", -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_step(stmt);
+
+    BookView bookView(
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)),
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
+        sqlite3_column_int(stmt, 3)
+    );
+
+    sqlite3_finalize(stmt);
+
+    return bookView;
+}
+
 vector<BookView> Library::findBooks(const string& title, const string& author, const string& publishTime) {
     sqlite3_stmt* stmt;
     vector<BookView> foundBooks;
@@ -143,7 +179,7 @@ vector<BookView> Library::findBooks(const string& title, const string& author, c
         foundBooks.emplace_back(
             reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)),
             reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)),
-            reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3))
+            sqlite3_column_int(stmt, 3)
         );
     }
 
@@ -174,7 +210,7 @@ vector<UserView> Library::findUsers(const string& name, const string& phoneNumbe
     return foundUsers;
 }
 
-vector<ContractView> Library::findActiveContracts(const int userId, const int bookId) {
+vector<ContractView> Library::findActiveContracts(const int userId, const int bookId, const t_point& openingTime) {
     sqlite3_stmt* stmt;
     vector<ContractView> foundContract;
 

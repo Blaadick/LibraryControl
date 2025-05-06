@@ -4,6 +4,9 @@
 #include "UserView.hpp"
 
 class ContractView {
+public:
+    // ContractView();
+
 private:
     UserView user;
     BookView book;
