@@ -7,24 +7,47 @@
 using namespace std;
 using namespace chrono;
 
+//TODO Элеементы таблиц с null значениями не выводятся
+
+void outputTables() {
+    cout << "┌Users─────────────┬───────────────┬────────────┐" << endl;
+    cout << "│ Name             │ Phone Number  │ Passport   │" << endl;
+    cout << "├──────────────────┼───────────────┼────────────┤" << endl;
+    for(const auto& user : Library::findUsers("", "", "")) {
+        cout << user.toString() << endl;
+    }
+    cout << "└──────────────────┴───────────────┴────────────┘" << endl;
+
+    cout << endl;
+
+    cout << "┌Books─────────────────────────────┬──────────────────┬────────────┐" << endl;
+    cout << "│ Title                            │ Author           │ Date       │" << endl;
+    cout << "├──────────────────────────────────┼──────────────────┼────────────┤" << endl;
+    for(const auto& book : Library::findBooks("", "", "")) {
+        cout << book.toString() << endl;
+    }
+    cout << "└──────────────────────────────────┴──────────────────┴────────────┘" << endl;
+
+    cout << endl;
+
+    cout << "┌Contracts─────────┬──────────────────────────────────┬─────────────────────┬─────────────────────┐" << endl;
+    cout << "│ User             │ Book                             │ Opening Time        │ Closing Time        │" << endl;
+    cout << "├──────────────────┼──────────────────────────────────┼─────────────────────┼─────────────────────┤" << endl;
+    for(const auto& contract : Library::findContracts(false, 0, 0, "")) {
+        cout << contract.toString() << endl;
+    }
+    cout << "├──────────────────┼──────────────────────────────────┼─────────────────────┼─────────────────────┤" << endl;
+    for(const auto& contract : Library::findContracts(true, 0, 0, "")) {
+        cout << contract.toString() << endl;
+    }
+    cout << "└──────────────────┴──────────────────────────────────┴─────────────────────┴─────────────────────┘" << endl;
+}
+
 int main() {
     FileManager::init();
     Library library;
 
-    // cout << toString(floor<seconds>(system_clock::now())) << endl;
-    // cout << toTime(toString(floor<seconds>(system_clock::now()))).time_since_epoch().count();
+    outputTables();
 
-    // int userId, bookId, duration;
-    // cin >> userId >> bookId >> duration;
-    //
-    // Library::openContract(userId, bookId, days(duration), floor<seconds>(system_clock::now()));
-
-    Library::findOpenedContracts(1, 0, "2025");
-
-    // int userId, bookId;
-    // cin >> userId >> bookId;
-    //
-    // Library::openContract(userId, bookId, days(30), floor<seconds>(system_clock::now()));
-
-    // Library::closeContract(3);
+    Library::closeContract(1);
 }

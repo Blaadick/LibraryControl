@@ -15,5 +15,5 @@ const std::string& BookView::getTitle() const {
 }
 
 std::string BookView::toString() const {
-    return format("│ {:<32} │ {:<16} │ {} │", title, author, publishDate);
+    return format("│ {:<32} │ {:<16} │ {:%Y.%m.%d} │", title, author, publishDate);
 }

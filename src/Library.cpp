@@ -16,7 +16,7 @@ Library::Library() {
     simpleQuery(R"(
         CREATE TABLE IF NOT EXISTS Books(
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Title TEXT,
+            Title TEXT NOT NULL,
             Author TEXT,
             PublishDate DATE
         );
@@ -25,7 +25,7 @@ Library::Library() {
     simpleQuery(R"(
         CREATE TABLE IF NOT EXISTS Users(
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name TEXT,
+            Name TEXT NOT NULL,
             PhoneNumber TEXT,
             PassportId TEXT
         );
@@ -34,11 +34,11 @@ Library::Library() {
     simpleQuery(R"(
         CREATE TABLE IF NOT EXISTS Contracts(
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
-            IsClosed BOOLEAN,
-            User INTEGER,
-            Book INTEGER,
-            OpeningTime DATETIME,
-            ClosingTime DATETIME,
+            IsClosed BOOLEAN NOT NULL,
+            User INTEGER NOT NULL,
+            Book INTEGER NOT NULL,
+            OpeningTime DATETIME NOT NULL,
+            ClosingTime DATETIME NOT NULL,
             FOREIGN KEY (User) REFERENCES Users(Id),
             FOREIGN KEY (Book) REFERENCES Books(Id)
         );
@@ -110,12 +110,15 @@ void Library::removeUser(const int id) {
 void Library::closeContract(const int id) {
     sqlite3_stmt* stmt;
 
-    //TODO CloseContract
+    sqlite3_prepare_v2(db, "UPDATE Contracts SET IsClosed = true WHERE Id = ?", -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
 }
 
 UserView Library::getUser(const int id) {
     sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(db, "SELECT * FROM Users WHERE ID = ?;", -1, &stmt, nullptr);
+    sqlite3_prepare_v2(db, "SELECT * FROM Users WHERE ID = ?", -1, &stmt, nullptr);
     sqlite3_bind_int(stmt, 1, id);
     sqlite3_step(stmt);
 
@@ -132,7 +135,7 @@ UserView Library::getUser(const int id) {
 
 BookView Library::getBook(const int id) {
     sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(db, "SELECT * FROM Books WHERE ID = ?;", -1, &stmt, nullptr);
+    sqlite3_prepare_v2(db, "SELECT * FROM Books WHERE ID = ?", -1, &stmt, nullptr);
     sqlite3_bind_int(stmt, 1, id);
     sqlite3_step(stmt);
 
@@ -191,26 +194,35 @@ vector<UserView> Library::findUsers(const string& name, const string& phoneNumbe
     return foundUsers;
 }
 
-vector<ContractView> Library::findOpenedContracts(const int userId, const int bookId, const string& openingTime) {
+vector<ContractView> Library::findContracts(const bool isClosed, const int userId, const int bookId, const string& openingTime) {
     sqlite3_stmt* stmt;
-    vector<ContractView> foundContract;
+    vector<ContractView> foundContracts;
 
     sqlite3_prepare_v2(db, R"(
-        SELECT * FROM ContractsActive WHERE
-            IsClosed = false AND
-            (? IS 0 OR User = ?) AND
-            (? IS 0 OR Book = ?) AND
-            OpeningTime LIKE ?
+        SELECT * FROM Contracts WHERE
+            IsClosed = ?1 AND
+            (?2 = 0 OR User = ?2) AND
+            (?3 = 0 OR Book = ?3) AND
+            OpeningTime LIKE ?4
     )", -1, &stmt, nullptr);
-    sqlite3_bind_int(stmt, 1, userId);
-    sqlite3_bind_int(stmt, 2, bookId);
-    sqlite3_bind_text(stmt, 3, openingTime.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 1, isClosed);
+    sqlite3_bind_int(stmt, 2, userId);
+    sqlite3_bind_int(stmt, 3, bookId);
+    sqlite3_bind_text(stmt, 4, ('%' + openingTime + '%').c_str(), -1, SQLITE_TRANSIENT);
 
-    while(sqlite3_step(stmt) == SQLITE_ROW) {}
+    while(sqlite3_step(stmt) == SQLITE_ROW) {
+        foundContracts.emplace_back(
+            sqlite3_column_int(stmt, 1),
+            getUser(sqlite3_column_int(stmt, 2)),
+            getBook(sqlite3_column_int(stmt, 3)),
+            toDateTime(sqlite3_column_text(stmt, 4)),
+            toDateTime(sqlite3_column_text(stmt, 5))
+        );
+    }
 
     sqlite3_finalize(stmt);
 
-    return foundContract;
+    return foundContracts;
 }
 
 sqlite3* Library::db;

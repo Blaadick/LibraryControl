@@ -42,7 +42,12 @@ public:
         const std::string& passportId
     );
 
-    static std::vector<ContractView> findOpenedContracts(int userId, int bookId, const std::string& openingTime);
+    static std::vector<ContractView> findContracts(
+        bool isClosed,
+        int userId,
+        int bookId,
+        const std::string& openingTime
+    );
 
 private:
     static sqlite3* db;
