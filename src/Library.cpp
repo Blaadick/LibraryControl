@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <filesystem>
-#include "ContractView.hpp"
+#include "Contract.hpp"
 #include "FileManager.hpp"
-#include "UserView.hpp"
+#include "User.hpp"
 
 using namespace std;
 using namespace chrono;
@@ -116,13 +116,13 @@ void Library::closeContract(const int id) {
     sqlite3_finalize(stmt);
 }
 
-UserView Library::getUser(const int id) {
+User Library::getUser(const int id) {
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db, "SELECT * FROM Users WHERE ID = ?", -1, &stmt, nullptr);
     sqlite3_bind_int(stmt, 1, id);
     sqlite3_step(stmt);
 
-    UserView userView(
+    User userView(
         sqlite3_column_text(stmt, 1),
         sqlite3_column_text(stmt, 2),
         sqlite3_column_text(stmt, 3)
@@ -133,13 +133,13 @@ UserView Library::getUser(const int id) {
     return userView;
 }
 
-BookView Library::getBook(const int id) {
+Book Library::getBook(const int id) {
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db, "SELECT * FROM Books WHERE ID = ?", -1, &stmt, nullptr);
     sqlite3_bind_int(stmt, 1, id);
     sqlite3_step(stmt);
 
-    BookView bookView(
+    Book bookView(
         sqlite3_column_text(stmt, 1),
         sqlite3_column_text(stmt, 2),
         toDate(sqlite3_column_text(stmt, 3))
@@ -150,9 +150,16 @@ BookView Library::getBook(const int id) {
     return bookView;
 }
 
-vector<BookView> Library::findBooks(const string& title, const string& author, const string& publishDate) {
+/**
+ * 
+ * @param title 
+ * @param author 
+ * @param publishDate 
+ * @return 
+ */
+vector<Book> Library::findBooks(const string& title, const string& author, const string& publishDate) {
     sqlite3_stmt* stmt;
-    vector<BookView> foundBooks;
+    vector<Book> foundBooks;
 
     sqlite3_prepare_v2(db, "SELECT * FROM Books WHERE Title LIKE ? AND Author LIKE ? AND PublishDate LIKE ?", -1, &stmt, nullptr);
     sqlite3_bind_text(stmt, 1, ('%' + title + '%').c_str(), -1, SQLITE_TRANSIENT);
@@ -172,9 +179,9 @@ vector<BookView> Library::findBooks(const string& title, const string& author, c
     return foundBooks;
 }
 
-vector<UserView> Library::findUsers(const string& name, const string& phoneNumber, const string& passportId) {
+vector<User> Library::findUsers(const string& name, const string& phoneNumber, const string& passportId) {
     sqlite3_stmt* stmt;
-    vector<UserView> foundUsers;
+    vector<User> foundUsers;
 
     sqlite3_prepare_v2(db, "SELECT * FROM Users WHERE Name LIKE ? AND PhoneNumber LIKE ? AND PassportId LIKE ?", -1, &stmt, nullptr);
     sqlite3_bind_text(stmt, 1, ('%' + name + '%').c_str(), -1, SQLITE_TRANSIENT);
@@ -194,9 +201,9 @@ vector<UserView> Library::findUsers(const string& name, const string& phoneNumbe
     return foundUsers;
 }
 
-vector<ContractView> Library::findContracts(const bool isClosed, const int userId, const int bookId, const string& openingTime) {
+vector<Contract> Library::findContracts(const bool isClosed, const int userId, const int bookId, const string& openingTime) {
     sqlite3_stmt* stmt;
-    vector<ContractView> foundContracts;
+    vector<Contract> foundContracts;
 
     sqlite3_prepare_v2(db, R"(
         SELECT * FROM Contracts WHERE

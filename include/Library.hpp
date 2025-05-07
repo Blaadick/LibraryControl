@@ -3,12 +3,12 @@
 #include <string>
 #include <vector>
 #include <sqlite/sqlite3.h>
-#include "BookView.hpp"
-#include "ContractView.hpp"
-#include "UserView.hpp"
+#include "Book.hpp"
+#include "Contract.hpp"
+#include "User.hpp"
 #include "Util.hpp"
 
-class Library {
+class Library final {
 public:
     Library();
 
@@ -26,23 +26,23 @@ public:
 
     static void closeContract(int id);
 
-    static UserView getUser(int id);
+    static User getUser(int id);
 
-    static BookView getBook(int id);
+    static Book getBook(int id);
 
-    static std::vector<BookView> findBooks(
+    static std::vector<Book> findBooks(
         const std::string& title,
         const std::string& author,
         const std::string& publishDate
     );
 
-    static std::vector<UserView> findUsers(
+    static std::vector<User> findUsers(
         const std::string& name,
         const std::string& phoneNumber,
         const std::string& passportId
     );
 
-    static std::vector<ContractView> findContracts(
+    static std::vector<Contract> findContracts(
         bool isClosed,
         int userId,
         int bookId,

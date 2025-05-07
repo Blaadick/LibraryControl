@@ -7,7 +7,7 @@
 using namespace std;
 using namespace chrono;
 
-//TODO Элеементы таблиц с null значениями не выводятся
+//TODO Элементы таблиц с null значениями не выводятся
 
 void outputTables() {
     cout << "┌Users─────────────┬───────────────┬────────────┐" << endl;
@@ -48,6 +48,4 @@ int main() {
     Library library;
 
     outputTables();
-
-    Library::closeContract(1);
 }

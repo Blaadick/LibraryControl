@@ -1,13 +1,13 @@
-#include "ContractView.hpp"
+#include "Contract.hpp"
 
-ContractView::ContractView(
+Contract::Contract(
     const bool isClosed,
-    const UserView& user,
-    const BookView& book,
+    const User& user,
+    const Book& book,
     const DateTime openingTime,
     const DateTime closingTime
 ) : isClosed(isClosed), user(user), book(book), openingTime(openingTime), closingTime(closingTime) {}
 
-std::string ContractView::toString() const {
+std::string Contract::toString() const {
     return std::format("│ {:<16} │ {:<32} │ {} │ {} │", user.getName(), book.getTitle(), openingTime, closingTime);
 }

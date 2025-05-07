@@ -3,9 +3,9 @@
 #include <string>
 #include "Util.hpp"
 
-class BookView {
+class Book final {
 public:
-    BookView(const std::string& title, const std::string& author, const Date& publishDate);
+    Book(const std::string& title, const std::string& author, const Date& publishDate);
 
     const std::string& getTitle() const;
 

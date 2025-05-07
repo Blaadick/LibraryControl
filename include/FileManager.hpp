@@ -2,7 +2,7 @@
 
 #include <filesystem>
 
-class FileManager {
+class FileManager final {
 public:
     static void init();
 

@@ -2,9 +2,9 @@
 
 #include <string>
 
-class UserView {
+class User final {
 public:
-    UserView(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
+    User(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
 
     const std::string& getName() const;
 
