@@ -3,18 +3,17 @@
 #include "FileManager.hpp"
 #include "Library.hpp"
 #include "Util.hpp"
+#include "gui/MainWindow.hpp"
 
 using namespace std;
 using namespace chrono;
-
-//TODO Элементы таблиц с null значениями не выводятся
 
 void outputTables() {
     cout << "┌Users─────────────┬───────────────┬────────────┐" << endl;
     cout << "│ Name             │ Phone Number  │ Passport   │" << endl;
     cout << "├──────────────────┼───────────────┼────────────┤" << endl;
     for(const auto& user : Library::findUsers("", "", "")) {
-        cout << user.toString() << endl;
+        cout << format("│ {:<16} │ {:<13} │ {} │", user.name, user.phoneNumber, user.passportId) << endl;
     }
     cout << "└──────────────────┴───────────────┴────────────┘" << endl;
 
@@ -24,7 +23,7 @@ void outputTables() {
     cout << "│ Title                            │ Author           │ Date       │" << endl;
     cout << "├──────────────────────────────────┼──────────────────┼────────────┤" << endl;
     for(const auto& book : Library::findBooks("", "", "")) {
-        cout << book.toString() << endl;
+        cout << format("│ {:<32} │ {:<16} │ {:%Y.%m.%d} │", book.title, book.author, book.publishDate) << endl;
     }
     cout << "└──────────────────────────────────┴──────────────────┴────────────┘" << endl;
 
@@ -34,11 +33,11 @@ void outputTables() {
     cout << "│ User             │ Book                             │ Opening Time        │ Closing Time        │" << endl;
     cout << "├──────────────────┼──────────────────────────────────┼─────────────────────┼─────────────────────┤" << endl;
     for(const auto& contract : Library::findContracts(false, 0, 0, "")) {
-        cout << contract.toString() << endl;
+        cout << std::format("│ {:<16} │ {:<32} │ {} │ {} │", contract.user.name, contract.book.title, contract.openingTime, contract.closingTime) << endl;
     }
     cout << "├──────────────────┼──────────────────────────────────┼─────────────────────┼─────────────────────┤" << endl;
     for(const auto& contract : Library::findContracts(true, 0, 0, "")) {
-        cout << contract.toString() << endl;
+        cout << std::format("│ {:<16} │ {:<32} │ {} │ {} │", contract.user.name, contract.book.title, contract.openingTime, contract.closingTime) << endl;
     }
     cout << "└──────────────────┴──────────────────────────────────┴─────────────────────┴─────────────────────┘" << endl;
 }
@@ -46,6 +45,14 @@ void outputTables() {
 int main() {
     FileManager::init();
     Library library;
+    MainWindow::init();
 
-    outputTables();
+    while(const int key = wgetch(stdscr)) {
+        if(key == 'q') break;
+
+        MainWindow::handleInput(key);
+    }
+
+    MainWindow::close();
+    // outputTables();
 }

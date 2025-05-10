@@ -11,6 +11,8 @@ project(
 
 set(CMAKE_CXX_STANDARD 26)
 
-add_executable(LibraryControl ${SOURCES} ${HEADERS})
-target_include_directories(LibraryControl PRIVATE include lib)
-target_link_libraries(LibraryControl PRIVATE stdc++ sqlite3)
+find_package(Curses REQUIRED)
+
+add_executable(LibraryControl ${SOURCES})
+target_include_directories(LibraryControl PRIVATE include lib ${CURSES_INCLUDE_DIR})
+target_link_libraries(LibraryControl PRIVATE stdc++ sqlite3 ${CURSES_LIBRARIES})
