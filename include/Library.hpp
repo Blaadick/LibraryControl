@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 #include <sqlite/sqlite3.h>
-#include "Book.hpp"
-#include "Contract.hpp"
-#include "User.hpp"
 #include "Util.hpp"
+#include "data/Book.hpp"
+#include "data/Contract.hpp"
+#include "data/User.hpp"
 
 class Library final {
 public:

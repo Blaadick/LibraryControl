@@ -3,11 +3,13 @@
 using namespace std;
 using namespace std::filesystem;
 
-void FileManager::init() {
+FileManager::FileManager() {
     if(!exists(localDir)) {
         create_directory(localDir);
     }
 }
+
+FileManager::~FileManager() {}
 
 const path& FileManager::getLocalDir() {
     return localDir;

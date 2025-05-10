@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <filesystem>
-#include "Contract.hpp"
+#include "../include/data/Contract.hpp"
 #include "FileManager.hpp"
-#include "User.hpp"
+#include "../include/data/User.hpp"
 
 using namespace std;
 using namespace chrono;

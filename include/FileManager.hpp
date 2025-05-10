@@ -4,7 +4,9 @@
 
 class FileManager final {
 public:
-    static void init();
+    FileManager();
+
+    ~FileManager();
 
     static const std::filesystem::path& getLocalDir();
 

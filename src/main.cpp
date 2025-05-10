@@ -43,16 +43,12 @@ void outputTables() {
 }
 
 int main() {
-    FileManager::init();
+    FileManager fileManager;
     Library library;
-    MainWindow::init();
+    MainWindow mainWindow;
 
     while(const int key = wgetch(stdscr)) {
         if(key == 'q') break;
-
         MainWindow::handleInput(key);
     }
-
-    MainWindow::close();
-    // outputTables();
 }
