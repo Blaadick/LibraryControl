@@ -13,9 +13,8 @@ public:
     static void handleInput(int key);
 
 private:
-    static WINDOW* tableOptionsMenu;
-    static WINDOW* generalOptionsMenu;
-    static WINDOW* tableMenu;
+    static WINDOW* optionsMenu;
+    static WINDOW* tablesMenu;
     static std::vector<TableView> tables;
     static std::vector<Option> generalOptions;
 
