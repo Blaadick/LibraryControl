@@ -19,3 +19,8 @@ void ContractsTableView::draw(WINDOW* window) {
         wattroff(window, COLOR_PAIR(2));
     }
 }
+
+void ContractsTableView::updateData(const std::vector<Contract>& contracts) {
+    this->contracts = contracts;
+    totalRows = static_cast<int>(contracts.size());
+}

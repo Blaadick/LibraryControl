@@ -116,6 +116,14 @@ void Library::closeContract(const int id) {
     sqlite3_finalize(stmt);
 }
 
+void Library::removeContract(const int id) {
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, "DELETE FROM Contracts WHERE ID = ? AND IsClosed = true;", -1, &stmt, nullptr);
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+}
+
 User Library::getUser(const int id) {
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db, "SELECT * FROM Users WHERE ID = ?", -1, &stmt, nullptr);
@@ -123,6 +131,7 @@ User Library::getUser(const int id) {
     sqlite3_step(stmt);
 
     User userView(
+        sqlite3_column_int(stmt, 0),
         sqlite3_column_text(stmt, 1),
         sqlite3_column_text(stmt, 2),
         sqlite3_column_text(stmt, 3)
@@ -140,6 +149,7 @@ Book Library::getBook(const int id) {
     sqlite3_step(stmt);
 
     Book bookView(
+        sqlite3_column_int(stmt, 0),
         sqlite3_column_text(stmt, 1),
         sqlite3_column_text(stmt, 2),
         toDate(sqlite3_column_text(stmt, 3))
@@ -168,6 +178,7 @@ vector<Book> Library::findBooks(const string& title, const string& author, const
 
     while(sqlite3_step(stmt) == SQLITE_ROW) {
         foundBooks.emplace_back(
+            sqlite3_column_int(stmt, 0),
             sqlite3_column_text(stmt, 1),
             sqlite3_column_text(stmt, 2),
             toDate(sqlite3_column_text(stmt, 3))
@@ -190,6 +201,7 @@ vector<User> Library::findUsers(const string& name, const string& phoneNumber, c
 
     while(sqlite3_step(stmt) == SQLITE_ROW) {
         foundUsers.emplace_back(
+            sqlite3_column_int(stmt, 0),
             sqlite3_column_text(stmt, 1),
             sqlite3_column_text(stmt, 2),
             sqlite3_column_text(stmt, 3)
@@ -219,6 +231,7 @@ vector<Contract> Library::findContracts(const bool isClosed, const int userId, c
 
     while(sqlite3_step(stmt) == SQLITE_ROW) {
         foundContracts.emplace_back(
+            sqlite3_column_int(stmt, 0),
             sqlite3_column_int(stmt, 1),
             getUser(sqlite3_column_int(stmt, 2)),
             getBook(sqlite3_column_int(stmt, 3)),

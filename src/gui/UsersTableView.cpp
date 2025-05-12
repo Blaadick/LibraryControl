@@ -19,3 +19,8 @@ void UsersTableView::draw(WINDOW* window) {
         wattroff(window, COLOR_PAIR(2));
     }
 }
+
+void UsersTableView::updateData(const std::vector<User>& users) {
+    this->users = users;
+    totalRows = static_cast<int>(users.size());
+}

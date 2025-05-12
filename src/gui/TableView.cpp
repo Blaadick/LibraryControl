@@ -31,3 +31,7 @@ void TableView::selectRow(const int rowNumber) {
 void TableView::selectOption(const int optionNumber) {
     selectedOption = optionNumber;
 }
+
+void TableView::executeSelectedOption() const {
+    options[selectedOption].action();
+}

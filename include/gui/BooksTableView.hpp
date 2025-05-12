@@ -9,6 +9,8 @@ public:
 
     void draw(WINDOW* window) override;
 
+    void updateData(const std::vector<Book>& books);
+
 private:
     std::vector<Book> books;
 };

@@ -26,6 +26,8 @@ public:
 
     static void closeContract(int id);
 
+    static void removeContract(int id);
+
     static User getUser(int id);
 
     static Book getBook(int id);

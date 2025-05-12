@@ -17,7 +17,12 @@ void BooksTableView::draw(WINDOW* window) {
         if(i == getSelectedRow()) {
             wattron(window, COLOR_PAIR(2));
         }
-        mvwprintw(window, i + 3, 2, "%s", std::format("{:<32} {:<16} {:%Y.%m.%d}", books[i].title, books[i].author, books[i].publishDate).c_str());
+        mvwprintw(window, i + 3, 2, "%s", std::format("{:<32} {:<16} {:11%Y.%m.%d}", books[i].title, books[i].author, books[i].publishDate).c_str());
         wattroff(window, COLOR_PAIR(2));
     }
+}
+
+void BooksTableView::updateData(const std::vector<Book>& books) {
+    this->books = books;
+    totalRows = static_cast<int>(books.size());
 }

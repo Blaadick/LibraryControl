@@ -28,6 +28,8 @@ public:
 
     virtual void draw(WINDOW* window) {}
 
+    void executeSelectedOption() const;
+
 protected:
     int totalRows = 0;
 

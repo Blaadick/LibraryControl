@@ -51,4 +51,12 @@ int main() {
         if(key == 'q') break;
         MainWindow::handleInput(key);
     }
+
+    // outputTables();
+    //
+    // int id;
+    // cin >> id;
+    // Library::removeBook(id);
+    //
+    // outputTables();
 }

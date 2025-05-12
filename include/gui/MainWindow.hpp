@@ -23,4 +23,11 @@ private:
     static void draw();
 
     static void update();
+
+    static void exitAction();
+    static void removeBookAction();
+    static void removeUserAction();
+    static void removeContractAction();
+    static void closeContractAction();
+
 };

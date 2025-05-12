@@ -5,6 +5,7 @@
 #include "Util.hpp"
 
 struct Contract {
+    int id;
     bool isClosed = false;
     User user;
     Book book;

@@ -38,7 +38,7 @@ MainWindow::MainWindow() {
     UsersTableView usersTable(
         {
             {"Add User", draw},
-            {"Remove User", draw}
+            {"Remove User", removeUserAction}
         },
         Library::findUsers("", "", "")
     );
@@ -46,7 +46,7 @@ MainWindow::MainWindow() {
     BooksTableView booksTable(
         {
             {"Add Book", draw},
-            {"Remove Book", draw}
+            {"Remove Book", removeBookAction}
         },
         Library::findBooks("", "", "")
     );
@@ -55,7 +55,7 @@ MainWindow::MainWindow() {
         "ActiveContracts",
         {
             {"Open Contract", draw},
-            {"Close Contract", draw},
+            {"Close Contract", removeContractAction},
         },
         Library::findContracts(false, 0, 0, "")
     );
@@ -75,7 +75,7 @@ MainWindow::MainWindow() {
 
     generalOptions = {
         {"Generate Report", draw},
-        {"Exit", draw}
+        {"Exit", exitAction}
     };
 
     optionsMenu = newwin(0, 0, 0, 0);
@@ -146,6 +146,18 @@ void MainWindow::handleInput(const int key) {
                 table->selectRow(cyclicShift(table->getSelectedRow(), 1, table->getTotalRows()));
             }
 
+            break;
+        }
+        case '\n': {
+            if(selectedMenu == 0) {
+                if(selectedOptionsTab == 0) {
+                    tables[selectedTable]->executeSelectedOption();
+                }
+
+                if(selectedOptionsTab == 1) {
+                    generalOptions[selectedGeneralOption].action();
+                }
+            }
             break;
         }
         default: break;
@@ -230,4 +242,56 @@ void MainWindow::update() {
 
     wrefresh(optionsMenu);
     wrefresh(tablesMenu);
+}
+
+void MainWindow::exitAction() {
+    exit(0);
+}
+
+void MainWindow::removeBookAction() {
+    const auto& table = tables[selectedTable];
+    const int selectedRow = table->getSelectedRow();
+
+    const auto books = Library::findBooks("", "", "");
+
+    Library::removeBook(books[selectedRow].id);
+    const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
+    booksTableView->updateData(Library::findBooks("", "", ""));
+    table->selectRow(cyclicShift(selectedRow, -1, booksTableView->getTotalRows()));
+}
+
+void MainWindow::removeUserAction() {
+    const auto& table = tables[selectedTable];
+    const int selectedRow = table->getSelectedRow();
+
+    const auto users = Library::findUsers("", "", "");
+
+    Library::removeUser(users[selectedRow].id);
+    const auto usersTableView = dynamic_cast<UsersTableView*>(tables[selectedTable].get());
+    usersTableView->updateData(Library::findUsers("", "", ""));
+    table->selectRow(cyclicShift(selectedRow, -1, usersTableView->getTotalRows()));
+}
+
+void MainWindow::closeContractAction() {
+    const auto& table = tables[selectedTable];
+    const int selectedRow = table->getSelectedRow();
+
+    const auto contracts = Library::findContracts(false, 0, 0, "");
+
+    Library::closeContract(contracts[selectedRow].id);
+    const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
+    contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
+    table->selectRow(cyclicShift(selectedRow, -1, contractsTableView->getTotalRows()));
+}
+
+void MainWindow::removeContractAction() {
+    const auto& table = tables[selectedTable];
+    const int selectedRow = table->getSelectedRow();
+
+    const auto contracts = Library::findContracts(true, 0, 0, "");
+
+    Library::removeContract(contracts[selectedRow].id);
+    const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
+    contractsTableView->updateData(Library::findContracts(true, 0, 0, ""));
+    table->selectRow(cyclicShift(selectedRow, -1, contractsTableView->getTotalRows()));
 }
