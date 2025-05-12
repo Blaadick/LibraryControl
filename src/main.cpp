@@ -2,7 +2,7 @@
 
 #include "FileManager.hpp"
 #include "Library.hpp"
-#include "Util.hpp"
+#include "../include/util/DateUtils.hpp"
 #include "gui/MainWindow.hpp"
 
 using namespace std;

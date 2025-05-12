@@ -8,6 +8,7 @@
 #include "gui/BooksTableView.hpp"
 #include "gui/ContractsTableView.hpp"
 #include "gui/UsersTableView.hpp"
+#include "util/GuiUtils.hpp"
 
 using namespace std;
 
@@ -37,7 +38,7 @@ MainWindow::MainWindow() {
 
     UsersTableView usersTable(
         {
-            {"Add User", draw},
+            {"Add User", addUserAction},
             {"Remove User", removeUserAction}
         },
         Library::findUsers("", "", "")
@@ -45,7 +46,7 @@ MainWindow::MainWindow() {
 
     BooksTableView booksTable(
         {
-            {"Add Book", draw},
+            {"Add Book", addBookAction},
             {"Remove Book", removeBookAction}
         },
         Library::findBooks("", "", "")
@@ -54,7 +55,7 @@ MainWindow::MainWindow() {
     ContractsTableView activeContractsTable(
         "ActiveContracts",
         {
-            {"Open Contract", draw},
+            {"Open Contract", openContractAction},
             {"Close Contract", closeContractAction},
         },
         Library::findContracts(false, 0, 0, "")
@@ -283,4 +284,44 @@ void MainWindow::closeContractAction() {
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
     closedContractsTableView->updateData(Library::findContracts(true, 0, 0, ""));
     table->selectRow(cyclicShift(selectedRow, -1, contractsTableView->getTotalRows()));
+}
+
+void MainWindow::addBookAction() {
+    const auto input = popupInput({"Title", "Author", "PublishDate"});
+
+    if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
+
+    Library::addBook(input[0], input[1], input[2]);
+
+    const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
+    booksTableView->updateData(Library::findBooks("", "", ""));
+}
+
+void MainWindow::addUserAction() {
+    const auto input = popupInput({"Name", "PhoneNumber", "PassportId"});
+
+    if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
+
+    Library::addUser(input[0], input[1], input[2]);
+
+    const auto usersTableView = dynamic_cast<UsersTableView*>(tables[selectedTable].get());
+    usersTableView->updateData(Library::findUsers("", "", ""));
+}
+
+void MainWindow::openContractAction() {
+    auto input = popupInput({"UserId", "BookId", "Duration", "OpenTime"});
+
+    if(input.empty() || input[0].empty() || input[1].empty()) return;
+
+    if(input[2].empty()) {
+        input[2] = "30";
+    }
+
+    if(input[3].empty()) {
+        input[3] = toString(chrono::floor<chrono::seconds>(chrono::system_clock::now()));
+    }
+
+    Library::openContract(stoi(input[0]), stoi(input[1]), chrono::days(stoi(input[2])), toDateTime(input[3]));
+    const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
+    contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
 }

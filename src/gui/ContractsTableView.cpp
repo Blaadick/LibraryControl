@@ -9,13 +9,13 @@ ContractsTableView::ContractsTableView(
 }
 
 void ContractsTableView::draw(WINDOW* window) {
-    mvwprintw(window, 1, 2, "Name                     BookTitle                                                        OpeningTime               ClosingTime");
+    mvwprintw(window, 1, 2, "Id Name                     BookTitle                                                        OpeningTime               ClosingTime");
 
     for(auto i = 0; i < contracts.size(); ++i) {
         if(i == getSelectedRow()) {
             wattron(window, COLOR_PAIR(2));
         }
-        mvwprintw(window, i + 3, 2, "%s", std::format("{:<24} {:<64} {:<25%Y.%m.%d %T} {:%Y.%m.%d %T}", contracts[i].user.name, contracts[i].book.title, contracts[i].openingTime, contracts[i].closingTime).c_str());
+        mvwprintw(window, i + 3, 2, "%s", std::format("{:>2} {:<24} {:<64} {:<25%Y.%m.%d %T} {:%Y.%m.%d %T}", contracts[i].id, contracts[i].user.name, contracts[i].book.title, contracts[i].openingTime, contracts[i].closingTime).c_str());
         wattroff(window, COLOR_PAIR(2));
     }
 }

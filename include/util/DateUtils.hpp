@@ -24,11 +24,3 @@ inline std::string toString(const DateTime& dateTime) {
 inline std::string toString(const Date& date) {
     return std::format("{:%F}", date);
 }
-
-inline int cyclicShift(const int currentPos, const int delta, const int maxPositions) {
-    if(maxPositions <= 0) {
-        return 0;
-    }
-
-    return (currentPos + delta + maxPositions) % maxPositions;
-}

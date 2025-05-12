@@ -31,4 +31,10 @@ private:
     static void removeUserAction();
 
     static void closeContractAction();
+
+    static void addBookAction();
+
+    static void addUserAction();
+
+    static void openContractAction();
 };

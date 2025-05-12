@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <sqlite/sqlite3.h>
-#include "Util.hpp"
+#include "util/DateUtils.hpp"
 #include "data/Book.hpp"
 #include "data/Contract.hpp"
 #include "data/User.hpp"
