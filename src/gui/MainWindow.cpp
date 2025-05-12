@@ -5,6 +5,9 @@
 #include <functional>
 #include <ncurses.h>
 #include "Library.hpp"
+#include "gui/BooksTableView.hpp"
+#include "gui/ContractsTableView.hpp"
+#include "gui/UsersTableView.hpp"
 
 using namespace std;
 
@@ -32,35 +35,43 @@ MainWindow::MainWindow() {
     init_pair(2, COLOR_BLACK, COLOR_WHITE);
     init_pair(3, 8, -1);
 
-    tables = {
+    UsersTableView usersTable(
         {
-            "Books",
-            {
-                {"Add Book", draw},
-                {"Remove Book", draw}
-            }
+            {"Add User", draw},
+            {"Remove User", draw}
         },
+        Library::findUsers("", "", "")
+    );
+
+    BooksTableView booksTable(
         {
-            "Users",
-            {
-                {"Add User", draw},
-                {"Remove User", draw}
-            }
+            {"Add Book", draw},
+            {"Remove Book", draw}
         },
+        Library::findBooks("", "", "")
+    );
+
+    ContractsTableView activeContractsTable(
+        "ActiveContracts",
         {
-            "ActiveContracts",
-            {
-                {"Open Contract", draw},
-                {"Close Contract", draw},
-            }
+            {"Open Contract", draw},
+            {"Close Contract", draw},
         },
+        Library::findContracts(false, 0, 0, "")
+    );
+
+    ContractsTableView closedContractsTable(
+        "ClosedContracts",
         {
-            "ClosedContracts",
-            {
-                {"Remove Contract", draw}
-            }
-        }
-    };
+            {"Remove Contract", draw}
+        },
+        Library::findContracts(true, 0, 0, "")
+    );
+
+    tables.push_back(make_unique<BooksTableView>(booksTable));
+    tables.push_back(make_unique<UsersTableView>(usersTable));
+    tables.push_back(make_unique<ContractsTableView>(activeContractsTable));
+    tables.push_back(make_unique<ContractsTableView>(closedContractsTable));
 
     generalOptions = {
         {"Generate Report", draw},
@@ -83,14 +94,6 @@ void MainWindow::handleInput(const int key) {
             selectedMenu = cyclicShift(selectedMenu, 1, 2);
             break;
         }
-        case KEY_RIGHT: {
-            if(selectedMenu == 0) {
-                selectedOptionsTab = cyclicShift(selectedOptionsTab, 1, 2);
-            } else {
-                selectedTable = cyclicShift(selectedTable, 1, static_cast<int>(tables.size()));
-            }
-            break;
-        }
         case KEY_LEFT: {
             if(selectedMenu == 0) {
                 selectedOptionsTab = cyclicShift(selectedOptionsTab, -1, 2);
@@ -99,12 +102,50 @@ void MainWindow::handleInput(const int key) {
             }
             break;
         }
-        case KEY_DOWN: {
-            if(selectedMenu == 0) {}
+        case KEY_RIGHT: {
+            if(selectedMenu == 0) {
+                selectedOptionsTab = cyclicShift(selectedOptionsTab, 1, 2);
+            } else {
+                selectedTable = cyclicShift(selectedTable, 1, static_cast<int>(tables.size()));
+            }
             break;
         }
         case KEY_UP: {
-            if(selectedMenu == 0) {}
+            const auto& table = tables[selectedTable];
+
+            if(selectedMenu == 0) {
+                if(selectedOptionsTab == 0) {
+                    table->selectOption(cyclicShift(table->getSelectedOption(), -1, static_cast<int>(table->getOptions().size())));
+                }
+
+                if(selectedOptionsTab == 1) {
+                    selectedGeneralOption = cyclicShift(selectedGeneralOption, -1, static_cast<int>(generalOptions.size()));
+                }
+            }
+
+            if(selectedMenu == 1) {
+                table->selectRow(cyclicShift(table->getSelectedRow(), -1, table->getTotalRows()));
+            }
+
+            break;
+        }
+        case KEY_DOWN: {
+            const auto& table = tables[selectedTable];
+
+            if(selectedMenu == 0) {
+                if(selectedOptionsTab == 0) {
+                    table->selectOption(cyclicShift(table->getSelectedOption(), 1, static_cast<int>(table->getOptions().size())));
+                }
+
+                if(selectedOptionsTab == 1) {
+                    selectedGeneralOption = cyclicShift(selectedGeneralOption, 1, static_cast<int>(generalOptions.size()));
+                }
+            }
+
+            if(selectedMenu == 1) {
+                table->selectRow(cyclicShift(table->getSelectedRow(), 1, table->getTotalRows()));
+            }
+
             break;
         }
         default: break;
@@ -115,7 +156,7 @@ void MainWindow::handleInput(const int key) {
 
 WINDOW* MainWindow::optionsMenu;
 WINDOW* MainWindow::tablesMenu;
-vector<TableView> MainWindow::tables;
+vector<unique_ptr<TableView>> MainWindow::tables;
 vector<Option> MainWindow::generalOptions;
 
 void MainWindow::draw() {
@@ -139,8 +180,12 @@ void MainWindow::draw() {
         mvwprintw(optionsMenu, 0, 11, " General ");
         wattroff(optionsMenu, COLOR_PAIR(3));
 
-        for(auto i = 0; i < tables[selectedTable].getOptions().size(); ++i) {
-            mvwprintw(optionsMenu, i + 1, 2, "%s", tables[selectedTable].getOptions()[i].title.c_str());
+        for(auto i = 0; i < tables[selectedTable]->getOptions().size(); ++i) {
+            if(i == tables[selectedTable]->getSelectedOption()) {
+                wattron(optionsMenu, COLOR_PAIR(2));
+            }
+            mvwprintw(optionsMenu, i + 1, 2, "%s", tables[selectedTable]->getOptions()[i].title.c_str());
+            wattroff(optionsMenu, COLOR_PAIR(2));
         }
     } else {
         wattron(optionsMenu, COLOR_PAIR(3));
@@ -149,23 +194,27 @@ void MainWindow::draw() {
         mvwprintw(optionsMenu, 0, 11, " General ");
 
         for(auto i = 0; i < generalOptions.size(); ++i) {
+            if(i == selectedGeneralOption) {
+                wattron(optionsMenu, COLOR_PAIR(2));
+            }
             mvwprintw(optionsMenu, i + 1, 2, "%s", generalOptions[i].title.c_str());
+            wattroff(optionsMenu, COLOR_PAIR(2));
         }
     }
 
     auto currentTableTabPos = -2;
     for(auto i = 0; i < tables.size(); ++i) {
-        const auto previousTitleWidth = i == 0 ? 0 : static_cast<int>(tables[i - 1].getTitle().length());
+        const auto previousTitleWidth = i == 0 ? 0 : static_cast<int>(tables[i - 1]->getTitle().length());
         currentTableTabPos += previousTitleWidth + 4;
 
-        if(i == selectedTable) {
-            mvwprintw(tablesMenu, 0, currentTableTabPos, " %s ", tables[i].getTitle().c_str());
-        } else {
+        if(i != selectedTable) {
             wattron(tablesMenu, COLOR_PAIR(3));
-            mvwprintw(tablesMenu, 0, currentTableTabPos, " %s ", tables[i].getTitle().c_str());
-            wattroff(tablesMenu, COLOR_PAIR(3));
         }
+        mvwprintw(tablesMenu, 0, currentTableTabPos, " %s ", tables[i]->getTitle().c_str());
+        wattroff(tablesMenu, COLOR_PAIR(3));
     }
+
+    tables[selectedTable]->draw(tablesMenu);
 }
 
 void MainWindow::update() {

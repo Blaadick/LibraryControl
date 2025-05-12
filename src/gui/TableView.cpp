@@ -11,3 +11,23 @@ const std::string& TableView::getTitle() const {
 const std::vector<Option>& TableView::getOptions() const {
     return options;
 }
+
+int TableView::getSelectedRow() const {
+    return selectedRow;
+}
+
+int TableView::getTotalRows() const {
+    return totalRows;
+}
+
+int TableView::getSelectedOption() const {
+    return selectedOption;
+}
+
+void TableView::selectRow(const int rowNumber) {
+    selectedRow = rowNumber;
+}
+
+void TableView::selectOption(const int optionNumber) {
+    selectedOption = optionNumber;
+}
