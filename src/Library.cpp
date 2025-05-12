@@ -160,13 +160,6 @@ Book Library::getBook(const int id) {
     return bookView;
 }
 
-/**
- * 
- * @param title 
- * @param author 
- * @param publishDate 
- * @return 
- */
 vector<Book> Library::findBooks(const string& title, const string& author, const string& publishDate) {
     sqlite3_stmt* stmt;
     vector<Book> foundBooks;

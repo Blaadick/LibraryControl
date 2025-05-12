@@ -39,7 +39,9 @@ MainWindow::MainWindow() {
     UsersTableView usersTable(
         {
             {"Add User", addUserAction},
-            {"Remove User", removeUserAction}
+            {"Remove User", removeUserAction},
+            {"Get User", getUserAction},
+            {"Search Users", searchUserAction}
         },
         Library::findUsers("", "", "")
     );
@@ -47,7 +49,9 @@ MainWindow::MainWindow() {
     BooksTableView booksTable(
         {
             {"Add Book", addBookAction},
-            {"Remove Book", removeBookAction}
+            {"Remove Book", removeBookAction},
+            {"Get Book", getBookAction},
+            {"Search Books", searchBooksAction}
         },
         Library::findBooks("", "", "")
     );
@@ -57,13 +61,17 @@ MainWindow::MainWindow() {
         {
             {"Open Contract", openContractAction},
             {"Close Contract", closeContractAction},
+            {"Get Contract", getActiveContractAction},
+            {"Search Contracts", searchContractAction}
         },
         Library::findContracts(false, 0, 0, "")
     );
 
     ContractsTableView closedContractsTable(
         "ClosedContracts",
-        {},
+        {
+            {"Get Contract", getClosedContractAction}
+        },
         Library::findContracts(true, 0, 0, "")
     );
 
@@ -324,4 +332,121 @@ void MainWindow::openContractAction() {
     Library::openContract(stoi(input[0]), stoi(input[1]), chrono::days(stoi(input[2])), toDateTime(input[3]));
     const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
+}
+
+void MainWindow::getBookAction() {
+    const auto input = popupInput({"BookId"});
+    if(input.empty() || input[0].empty()) return;
+
+    const int bookId = stoi(input[0]);
+    const auto books = Library::findBooks("", "", "");
+    const auto it = ranges::find_if(
+        books,
+        [bookId](const Book& b) {
+            return b.id == bookId;
+        }
+    );
+    auto index = 0;
+
+    if(it != books.end()) {
+        index = static_cast<int>(distance(books.begin(), it));
+    }
+
+    tables[selectedTable]->selectRow(index);
+}
+
+void MainWindow::getUserAction() {
+    const auto input = popupInput({"UserId"});
+    if(input.empty() || input[0].empty()) return;
+
+    const int userId = stoi(input[0]);
+    const auto users = Library::findUsers("", "", "");
+    const auto it = ranges::find_if(
+        users,
+        [userId](const User& user) {
+            return user.id == userId;
+        }
+    );
+    auto index = 0;
+
+    if(it != users.end()) {
+        index = static_cast<int>(distance(users.begin(), it));
+    }
+
+    tables[selectedTable]->selectRow(index);
+}
+
+void MainWindow::getActiveContractAction() {
+    const auto input = popupInput({"ContractId"});
+    if(input.empty() || input[0].empty()) return;
+    const int contractId = stoi(input[0]);
+    const auto contracts = Library::findContracts(false, 0, 0, "");
+    const auto it = ranges::find_if(
+        contracts,
+        [contractId](const Contract& contract) {
+            return contract.id == contractId;
+        }
+    );
+    auto index = 0;
+
+    if(it != contracts.end()) {
+        index = static_cast<int>(distance(contracts.begin(), it));
+    }
+
+    tables[selectedTable]->selectRow(index);
+}
+
+void MainWindow::getClosedContractAction() {
+    const auto input = popupInput({"ContractId"});
+    if(input.empty() || input[0].empty()) return;
+    const int contractId = stoi(input[0]);
+    const auto contracts = Library::findContracts(true, 0, 0, "");
+    const auto it = ranges::find_if(
+        contracts,
+        [contractId](const Contract& contract) {
+            return contract.id == contractId;
+        }
+    );
+    auto index = 0;
+
+    if(it != contracts.end()) {
+        index = static_cast<int>(distance(contracts.begin(), it));
+    }
+
+    tables[selectedTable]->selectRow(index);
+}
+
+void MainWindow::searchBooksAction() {
+    const auto input = popupInput({"Title", "Author", "PublishDate"});
+    if(input.empty()) return;
+
+    const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
+    booksTableView->updateData(
+        Library::findBooks(input[0], input[1], input[2])
+    );
+}
+
+void MainWindow::searchUserAction() {
+    const auto input = popupInput({"Name", "PhoneNumber", "PassportId"});
+    if(input.empty()) return;
+
+    const auto usersTableView = dynamic_cast<UsersTableView*>(tables[selectedTable].get());
+    usersTableView->updateData(
+        Library::findUsers(input[0], input[1], input[2])
+    );
+}
+
+void MainWindow::searchContractAction() {
+    const auto input = popupInput({"Closed (0/1)", "UserId", "BookId", "OpenTime"});
+    if(input.empty()) return;
+
+    bool isClosed = (input[0] == "1");
+    int uid = input[1].empty() ? 0 : stoi(input[1]);
+    int bid = input[2].empty() ? 0 : stoi(input[2]);
+    const string& openTime = input[3];
+
+    const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
+    contractsTableView->updateData(
+        Library::findContracts(isClosed, uid, bid, openTime)
+    );
 }

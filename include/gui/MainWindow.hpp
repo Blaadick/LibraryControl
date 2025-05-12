@@ -3,7 +3,6 @@
 #include <curses.h>
 #include <vector>
 #include <bits/unique_ptr.h>
-
 #include "gui/TableView.hpp"
 
 class MainWindow final {
@@ -37,4 +36,18 @@ private:
     static void addUserAction();
 
     static void openContractAction();
+
+    static void getBookAction();
+
+    static void getUserAction();
+
+    static void getActiveContractAction();
+
+    static void getClosedContractAction();
+
+    static void searchBooksAction();
+
+    static void searchUserAction();
+
+    static void searchContractAction();
 };
