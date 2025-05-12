@@ -20,5 +20,5 @@ private:
 
     static void draw();
 
-    static void refreshWindow();
+    static void update();
 };
