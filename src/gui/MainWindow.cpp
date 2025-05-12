@@ -55,16 +55,14 @@ MainWindow::MainWindow() {
         "ActiveContracts",
         {
             {"Open Contract", draw},
-            {"Close Contract", removeContractAction},
+            {"Close Contract", closeContractAction},
         },
         Library::findContracts(false, 0, 0, "")
     );
 
     ContractsTableView closedContractsTable(
         "ClosedContracts",
-        {
-            {"Remove Contract", draw}
-        },
+        {},
         Library::findContracts(true, 0, 0, "")
     );
 
@@ -245,6 +243,7 @@ void MainWindow::update() {
 }
 
 void MainWindow::exitAction() {
+    endwin();
     exit(0);
 }
 
@@ -280,18 +279,8 @@ void MainWindow::closeContractAction() {
 
     Library::closeContract(contracts[selectedRow].id);
     const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
+    const auto closedContractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable + 1].get());
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
-    table->selectRow(cyclicShift(selectedRow, -1, contractsTableView->getTotalRows()));
-}
-
-void MainWindow::removeContractAction() {
-    const auto& table = tables[selectedTable];
-    const int selectedRow = table->getSelectedRow();
-
-    const auto contracts = Library::findContracts(true, 0, 0, "");
-
-    Library::removeContract(contracts[selectedRow].id);
-    const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
-    contractsTableView->updateData(Library::findContracts(true, 0, 0, ""));
+    closedContractsTableView->updateData(Library::findContracts(true, 0, 0, ""));
     table->selectRow(cyclicShift(selectedRow, -1, contractsTableView->getTotalRows()));
 }

@@ -33,5 +33,6 @@ void TableView::selectOption(const int optionNumber) {
 }
 
 void TableView::executeSelectedOption() const {
+    if(options.empty()) return;
     options[selectedOption].action();
 }
