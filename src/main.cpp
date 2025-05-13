@@ -1,9 +1,8 @@
 #include <iostream>
-
 #include "FileManager.hpp"
 #include "Library.hpp"
-#include "../include/util/DateUtils.hpp"
 #include "gui/MainWindow.hpp"
+#include "util/DateUtils.hpp"
 
 using namespace std;
 using namespace chrono;
@@ -51,12 +50,4 @@ int main() {
         if(key == 'q') break;
         MainWindow::handleInput(key);
     }
-
-    // outputTables();
-    //
-    // int id;
-    // cin >> id;
-    // Library::removeBook(id);
-    //
-    // outputTables();
 }

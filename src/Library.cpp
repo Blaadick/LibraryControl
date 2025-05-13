@@ -1,10 +1,10 @@
 #include "Library.hpp"
 
-#include <iostream>
 #include <filesystem>
-#include "../include/data/Contract.hpp"
+#include <iostream>
 #include "FileManager.hpp"
-#include "../include/data/User.hpp"
+#include "data/Contract.hpp"
+#include "data/User.hpp"
 
 using namespace std;
 using namespace chrono;

@@ -1,70 +1,104 @@
 #pragma once
 
 #include <curses.h>
+#include <string.h>
 #include <string>
 #include <vector>
 
 inline int cyclicShift(const int currentPos, const int delta, const int maxPositions) {
-    if(maxPositions <= 0) {
-        return 0;
-    }
-
-    return (currentPos + delta + maxPositions) % maxPositions;
+    return maxPositions > 0 ? (currentPos + delta + maxPositions) % maxPositions : 0;
 }
 
-inline std::vector<std::string> popupInput(const std::vector<std::string>& labels) {
-    const auto max_label_len = static_cast<int>(std::max_element(labels.begin(), labels.end(),
-        [](auto const& a, auto const& b) {
-            return a.size() < b.size();
-        })->size());
-    const auto fields = static_cast<int>(labels.size());
-    constexpr auto field_h = 1;
-    constexpr auto pad_y = 1;
-    constexpr auto pad_x = 7;
-    const auto h = fields * (field_h + 1) + pad_y;
-    const auto w = max_label_len + 32 + pad_x;
-    const auto y0 = (LINES - h) / 2;
-    const auto x0 = (COLS - w) / 2;
+inline std::vector<std::string> popupInput(const std::string& title, const std::vector<std::string>& labels) {
+    int n = labels.size();
+    int ml = 0;
+    for(const auto& s : labels) if((int) s.size() > ml) ml = s.size();
+    const int fw = 32, fh = 1, py = 2;
+    int h = n * (fh + 1) + py + 1;
+    int w = ml + 1 + 1 + fw + 2;
+    int y0 = (LINES - h) / 2;
+    int x0 = (COLS - w) / 2;
 
-    auto* win = newwin(h, w, y0, x0);
-    init_pair(4, COLOR_WHITE, COLOR_BLACK);
-    wattron(win, COLOR_PAIR(4));
-    box(win, 0, 0);
-    wattroff(win, COLOR_PAIR(4));
-    keypad(win, true);
+    WINDOW* win = newwin(h, w, y0, x0);
+    keypad(win, TRUE);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
 
-    std::vector<std::string> vals(fields);
-    auto cur = 0;
-    const auto draw = [&] {
+    std::string ok = " Принять ", cn = " Отмена ";
+    int bs = 4, bc = 2, bt = ok.size() + cn.size() + bs;
+    int by = h - 1, bx0 = (w - bt) / 2, ox = bx0 + 8, cx = ox + ok.size() + bs;
+
+    std::vector<std::string> vals(n, "");
+    int cur = 0;
+    bool done = false, oked = false;
+    auto draw = [&] {
         werase(win);
         box(win, 0, 0);
-        for(auto i = 0; i < fields; ++i) {
-            const auto y = 1 + i * (field_h + 1);
-            const auto label_x = 2 + static_cast<int>(max_label_len - labels[i].size());
-            mvwprintw(win, y, label_x, "%s:", labels[i].c_str());
-            if(i == cur)
+        if(!title.empty()) {
+            int tx = (w - title.size()) / 2;
+            mvwprintw(win, 0, tx, "%s", title.c_str());
+        }
+        for(int i = 0; i < n; i++) {
+            int y = py + i * (fh + 1), lx = 1 + (ml - labels[i].size());
+            mvwprintw(win, y, lx, "%s:", labels[i].c_str());
+            if(cur == i)
                 wattron(win, A_REVERSE);
-            mvwprintw(win, y, max_label_len + 4, "%-32s ", vals[i].c_str());
-            if(i == cur)
+            mvwprintw(win, y, ml + 2, "%-*s", fw, vals[i].c_str());
+            if(cur == i)
                 wattroff(win, A_REVERSE);
         }
+        if(cur == n)
+            wattron(win, A_REVERSE);
+        mvwprintw(win, by, ox, "%s", ok.c_str());
+        if(cur == n)
+            wattroff(win, A_REVERSE);
+        if(cur == n + 1)
+            wattron(win, A_REVERSE);
+        mvwprintw(win, by, cx, "%s", cn.c_str());
+        if(cur == n + 1)
+            wattroff(win, A_REVERSE);
         wrefresh(win);
     };
     draw();
-
-    for(auto ch = 0; (ch = wgetch(win));) {
-        if(ch == '\n') break;
-        if(ch == 27) {
-            delwin(win);
-            return {};
+    while(!done) {
+        int ch = wgetch(win);
+        switch(ch) {
+            case '\t': cur = cyclicShift(cur, 1, n + bc);
+                break;
+            case KEY_BTAB: cur = cyclicShift(cur, -1, n + bc);
+                break;
+            case KEY_LEFT:
+            case KEY_RIGHT: if(cur >= n)cur = cyclicShift(cur - n, ch == KEY_LEFT ? -1 : 1, bc) + n;
+                break;
+            case '\n': if(cur < n)cur = cyclicShift(cur, 1, n + bc);
+                else {
+                    oked = (cur == n);
+                    done = true;
+                }
+                break;
+            case 27: done = true;
+                break;
+            case KEY_BACKSPACE:
+            case 127: if(cur < n && !vals[cur].empty()) vals[cur].pop_back();
+                break;
+            case KEY_MOUSE: {
+                MEVENT e;
+                if(getmouse(&e) == OK && (e.bstate & BUTTON1_CLICKED)) {
+                    int mx = e.x - x0, my = e.y - y0;
+                    if(my == by) {
+                        if(mx >= ox && mx < ox + ok.size()) {
+                            oked = true;
+                            done = true;
+                        } else if(mx >= cx && mx < cx + cn.size()) done = true;
+                    } else for(int i = 0; i < n; i++) if(my == py + i * (fh + 1)) cur = i;
+                }
+            }
+            break;
+            default: if(cur < n && isprint(ch) && vals[cur].size() < fw) vals[cur].push_back(ch);
         }
-        if(ch == KEY_UP) cur = cyclicShift(cur, -1, fields);
-        else if(ch == KEY_DOWN) cur = cyclicShift(cur, +1, fields);
-        else if((ch == KEY_BACKSPACE || ch == 127) && !vals[cur].empty()) vals[cur].pop_back();
-        else if(isprint(ch) && vals[cur].size() < 32) vals[cur].push_back(static_cast<char>(ch));
         draw();
     }
-
+    werase(win);
+    wrefresh(win);
     delwin(win);
-    return vals;
+    return oked ? vals : std::vector<std::string>();
 }

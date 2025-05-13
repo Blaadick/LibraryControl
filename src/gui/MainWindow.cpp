@@ -40,7 +40,6 @@ MainWindow::MainWindow() {
         {
             {"Add User", addUserAction},
             {"Remove User", removeUserAction},
-            {"Get User", getUserAction},
             {"Search Users", searchUserAction}
         },
         Library::findUsers("", "", "")
@@ -50,7 +49,6 @@ MainWindow::MainWindow() {
         {
             {"Add Book", addBookAction},
             {"Remove Book", removeBookAction},
-            {"Get Book", getBookAction},
             {"Search Books", searchBooksAction}
         },
         Library::findBooks("", "", "")
@@ -61,7 +59,6 @@ MainWindow::MainWindow() {
         {
             {"Open Contract", openContractAction},
             {"Close Contract", closeContractAction},
-            {"Get Contract", getActiveContractAction},
             {"Search Contracts", searchContractAction}
         },
         Library::findContracts(false, 0, 0, "")
@@ -70,7 +67,7 @@ MainWindow::MainWindow() {
     ContractsTableView closedContractsTable(
         "ClosedContracts",
         {
-            {"Get Contract", getClosedContractAction}
+            {"Search Contracts", searchContractAction}
         },
         Library::findContracts(true, 0, 0, "")
     );
@@ -295,7 +292,7 @@ void MainWindow::closeContractAction() {
 }
 
 void MainWindow::addBookAction() {
-    const auto input = popupInput({"Title", "Author", "PublishDate"});
+    const auto input = popupInput("Add Book", {"Title", "Author", "PublishDate"});
 
     if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
 
@@ -306,7 +303,7 @@ void MainWindow::addBookAction() {
 }
 
 void MainWindow::addUserAction() {
-    const auto input = popupInput({"Name", "PhoneNumber", "PassportId"});
+    const auto input = popupInput("Add User", {"Name", "PhoneNumber", "PassportId"});
 
     if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
 
@@ -317,7 +314,7 @@ void MainWindow::addUserAction() {
 }
 
 void MainWindow::openContractAction() {
-    auto input = popupInput({"UserId", "BookId", "Duration", "OpenTime"});
+    auto input = popupInput("Open Contract", {"UserId", "BookId", "Duration", "OpenTime"});
 
     if(input.empty() || input[0].empty() || input[1].empty()) return;
 
@@ -334,90 +331,8 @@ void MainWindow::openContractAction() {
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
 }
 
-void MainWindow::getBookAction() {
-    const auto input = popupInput({"BookId"});
-    if(input.empty() || input[0].empty()) return;
-
-    const int bookId = stoi(input[0]);
-    const auto books = Library::findBooks("", "", "");
-    const auto it = ranges::find_if(
-        books,
-        [bookId](const Book& b) {
-            return b.id == bookId;
-        }
-    );
-    auto index = 0;
-
-    if(it != books.end()) {
-        index = static_cast<int>(distance(books.begin(), it));
-    }
-
-    tables[selectedTable]->selectRow(index);
-}
-
-void MainWindow::getUserAction() {
-    const auto input = popupInput({"UserId"});
-    if(input.empty() || input[0].empty()) return;
-
-    const int userId = stoi(input[0]);
-    const auto users = Library::findUsers("", "", "");
-    const auto it = ranges::find_if(
-        users,
-        [userId](const User& user) {
-            return user.id == userId;
-        }
-    );
-    auto index = 0;
-
-    if(it != users.end()) {
-        index = static_cast<int>(distance(users.begin(), it));
-    }
-
-    tables[selectedTable]->selectRow(index);
-}
-
-void MainWindow::getActiveContractAction() {
-    const auto input = popupInput({"ContractId"});
-    if(input.empty() || input[0].empty()) return;
-    const int contractId = stoi(input[0]);
-    const auto contracts = Library::findContracts(false, 0, 0, "");
-    const auto it = ranges::find_if(
-        contracts,
-        [contractId](const Contract& contract) {
-            return contract.id == contractId;
-        }
-    );
-    auto index = 0;
-
-    if(it != contracts.end()) {
-        index = static_cast<int>(distance(contracts.begin(), it));
-    }
-
-    tables[selectedTable]->selectRow(index);
-}
-
-void MainWindow::getClosedContractAction() {
-    const auto input = popupInput({"ContractId"});
-    if(input.empty() || input[0].empty()) return;
-    const int contractId = stoi(input[0]);
-    const auto contracts = Library::findContracts(true, 0, 0, "");
-    const auto it = ranges::find_if(
-        contracts,
-        [contractId](const Contract& contract) {
-            return contract.id == contractId;
-        }
-    );
-    auto index = 0;
-
-    if(it != contracts.end()) {
-        index = static_cast<int>(distance(contracts.begin(), it));
-    }
-
-    tables[selectedTable]->selectRow(index);
-}
-
 void MainWindow::searchBooksAction() {
-    const auto input = popupInput({"Title", "Author", "PublishDate"});
+    const auto input = popupInput("Search for Books", {"Title", "Author", "Publish date"});
     if(input.empty()) return;
 
     const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
@@ -427,7 +342,7 @@ void MainWindow::searchBooksAction() {
 }
 
 void MainWindow::searchUserAction() {
-    const auto input = popupInput({"Name", "PhoneNumber", "PassportId"});
+    const auto input = popupInput("Search for Users", {"Name", "Phone Number", "Passport id"});
     if(input.empty()) return;
 
     const auto usersTableView = dynamic_cast<UsersTableView*>(tables[selectedTable].get());
@@ -437,7 +352,7 @@ void MainWindow::searchUserAction() {
 }
 
 void MainWindow::searchContractAction() {
-    const auto input = popupInput({"Closed (0/1)", "UserId", "BookId", "OpenTime"});
+    const auto input = popupInput("Search for Contract", {"Closed", "User name", "Book title", "Open time"});
     if(input.empty()) return;
 
     bool isClosed = (input[0] == "1");
