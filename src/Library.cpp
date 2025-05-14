@@ -71,7 +71,7 @@ void Library::addUser(const string& name, const string& phoneNumber, const strin
     sqlite3_finalize(stmt);
 }
 
-void Library::openContract(const int userId, const int bookId, const days contractDuration, const DateTime openingTime) {
+void Library::openContract(const int userId, const int bookId, const days& contractDuration, const DateTime& openingTime) {
     sqlite3_stmt* stmt;
 
     sqlite3_prepare_v2(db, "INSERT INTO Contracts (IsClosed, User, Book, OpeningTime, ClosingTime) VALUES (false, ?, ?, ?, ?)", -1, &stmt, nullptr);
@@ -107,11 +107,12 @@ void Library::removeUser(const int id) {
     sqlite3_finalize(stmt);
 }
 
-void Library::closeContract(const int id) {
+void Library::closeContract(const int id, const DateTime& closingTime) {
     sqlite3_stmt* stmt;
 
-    sqlite3_prepare_v2(db, "UPDATE Contracts SET IsClosed = true WHERE Id = ?", -1, &stmt, nullptr);
-    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_prepare_v2(db, "UPDATE Contracts SET IsClosed = true, ClosingTime = ? WHERE Id = ?", -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, toString(closingTime).c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, id);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 }

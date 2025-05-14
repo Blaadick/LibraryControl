@@ -262,16 +262,44 @@ void MainWindow::update() {
 }
 
 void MainWindow::generateReport() {
-    auto input = popupInput(" Генерация отчёта ", {"Начало отсчёта", "Конец отсчёта"});
-    if(input.empty() || input[0].empty()) return;
+    const auto input = popupInput(" Генерация отчёта ", {"Начало", "Конец"});
+    if(input.empty() || input[0].empty()) {
+        return;
+    }
+
+    const DateTime start = toDateTime(input[0]);
+    const DateTime end = input[1].empty() ? floor<seconds>(system_clock::now()) : toDateTime(input[1]);
 
     update();
 
-    if(input[1].empty()) {
-        input[1] = toString(floor<seconds>(system_clock::now()));
+    const auto openedContracts = Library::findContracts(false, 0, 0, "");
+    const auto closedContracts = Library::findContracts(true, 0, 0, "");
+
+    auto received = 0;
+    for(const auto& contract : openedContracts) {
+        if(contract.openingTime >= start && contract.openingTime <= end) {
+            ++received;
+        }
     }
 
-    popupOutput(" Отчёт ", {"Линия1 Линия1 Линия1 Линия1", "Линия2 Линия2 Линия2 Линия2"});
+    auto returned = 0;
+    for(const auto& contract : closedContracts) {
+        if(contract.closingTime >= start && contract.closingTime <= end) {
+            ++returned;
+        }
+    }
+
+    const int notReturned = received - returned;
+
+    popupOutput(
+        " Отчёт ",
+        {
+            format("Книг выдано: {:<3}", received),
+            "────────────────────",
+            format("Книг возвращено: {:<3}", returned),
+            format("Не возвращено: {:<3}", notReturned)
+        }
+    );
 }
 
 void MainWindow::exitAction() {
@@ -309,7 +337,7 @@ void MainWindow::closeContractAction() {
 
     const auto contracts = Library::findContracts(false, 0, 0, "");
 
-    Library::closeContract(contracts[selectedRow].id);
+    Library::closeContract(contracts[selectedRow].id, floor<seconds>(system_clock::now()));
     const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
     const auto closedContractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable + 1].get());
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));

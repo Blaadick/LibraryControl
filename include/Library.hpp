@@ -18,13 +18,13 @@ public:
 
     static void addUser(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
 
-    static void openContract(int userId, int bookId, std::chrono::days contractDuration, DateTime openingTime);
+    static void openContract(int userId, int bookId, const std::chrono::days& contractDuration, const DateTime& openingTime);
 
     static void removeBook(int id);
 
     static void removeUser(int id);
 
-    static void closeContract(int id);
+    static void closeContract(int id, const DateTime& closingTime);
 
     static void removeContract(int id);
 
