@@ -11,6 +11,7 @@
 #include "util/GuiUtils.hpp"
 
 using namespace std;
+using namespace chrono;
 
 auto selectedMenu = 0;
 auto selectedTable = 0;
@@ -83,7 +84,7 @@ MainWindow::MainWindow() {
     tables.push_back(make_unique<ContractsTableView>(closedContractsTable));
 
     generalOptions = {
-        {"Сгенерировать отчёт", draw},
+        {"Сгенерировать отчёт", generateReport},
         {"Выйти", exitAction}
     };
 
@@ -260,6 +261,19 @@ void MainWindow::update() {
     wrefresh(tablesMenu);
 }
 
+void MainWindow::generateReport() {
+    auto input = popupInput(" Генерация отчёта ", {"Начало отсчёта", "Конец отсчёта"});
+    if(input.empty() || input[0].empty()) return;
+
+    update();
+
+    if(input[1].empty()) {
+        input[1] = toString(floor<seconds>(system_clock::now()));
+    }
+
+    popupOutput(" Отчёт ", {"Линия1 Линия1 Линия1 Линия1", "Линия2 Линия2 Линия2 Линия2"});
+}
+
 void MainWindow::exitAction() {
     endwin();
     exit(0);
@@ -315,7 +329,7 @@ void MainWindow::addBookAction() {
 }
 
 void MainWindow::addUserAction() {
-    const auto input = popupInput("Добавление пользователя", {"Имя", "Номер телефона", "Идент. номер"});
+    const auto input = popupInput(" Добавление пользователя ", {"Имя", "Номер телефона", "Идент. номер"});
 
     if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
 
@@ -326,7 +340,7 @@ void MainWindow::addUserAction() {
 }
 
 void MainWindow::openContractAction() {
-    auto input = popupInput("Открытие контракта", {"Имя пользователя", "Название книги", "Длительность", "Дата открытия"});
+    auto input = popupInput(" Открытие контракта ", {"Имя пользователя", "Название книги", "Длительность", "Дата открытия"});
 
     if(input.empty() || input[0].empty() || input[1].empty()) return;
 
@@ -348,16 +362,16 @@ void MainWindow::openContractAction() {
     }
 
     if(input[3].empty()) {
-        input[3] = toString(chrono::floor<chrono::seconds>(chrono::system_clock::now()));
+        input[3] = toString(floor<seconds>(system_clock::now()));
     }
 
-    Library::openContract(userId, bookId, chrono::days(stoi(input[2])), toDateTime(input[3]));
+    Library::openContract(userId, bookId, days(stoi(input[2])), toDateTime(input[3]));
     const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
 }
 
 void MainWindow::searchBooksAction() {
-    const auto input = popupInput("Поиск книг", {"Title", "Author", "Publish date"});
+    const auto input = popupInput(" Поиск книг ", {"Title", "Author", "Publish date"});
     if(input.empty()) return;
 
     const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
@@ -367,7 +381,7 @@ void MainWindow::searchBooksAction() {
 }
 
 void MainWindow::searchUserAction() {
-    const auto input = popupInput("Поиск пользователей", {"Name", "Phone Number", "Passport id"});
+    const auto input = popupInput(" Поиск пользователей ", {"Name", "Phone Number", "Passport id"});
     if(input.empty()) return;
 
     const auto usersTableView = dynamic_cast<UsersTableView*>(tables[selectedTable].get());
@@ -377,7 +391,7 @@ void MainWindow::searchUserAction() {
 }
 
 void MainWindow::searchActiveContractAction() {
-    const auto input = popupInput("Поиск контрактов", {"User name", "Book title", "Время открытия"});
+    const auto input = popupInput(" Поиск контрактов ", {"User name", "Book title", "Время открытия"});
 
     auto userId = 0;
     auto bookId = 0;
@@ -403,7 +417,7 @@ void MainWindow::searchActiveContractAction() {
 }
 
 void MainWindow::searchClosedContractAction() {
-    const auto input = popupInput("Поиск контрактов", {"User name", "Book title", "Время открытия"});
+    const auto input = popupInput(" Поиск контрактов ", {"User name", "Book title", "Время открытия"});
 
     auto userId = 0;
     auto bookId = 0;

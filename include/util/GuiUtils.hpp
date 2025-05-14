@@ -10,13 +10,70 @@ inline int cyclicShift(const int currentPos, const int delta, const int maxPosit
 }
 
 inline int countChars(const std::string& str) {
-    auto char_count = 0;
+    auto charCount = 0;
+
     for(const char c : str) {
         if((c & 0xC0) != 0x80) {
-            ++char_count;
+            ++charCount;
         }
     }
-    return char_count;
+
+    return charCount;
+}
+
+inline void popupOutput(const std::string& title, const std::vector<std::string>& lines) {
+    const auto btnLabel = std::string{" [Принять] "};
+    auto maxLineLen = countChars(title);
+    for(const auto& ln : lines) {
+        maxLineLen = std::max(maxLineLen, countChars(ln));
+    }
+    maxLineLen = std::max(maxLineLen, countChars(btnLabel));
+
+    const auto winW = maxLineLen + 4;
+    const auto winH = static_cast<int>(lines.size()) + 4;
+    const auto startY = (LINES - winH) / 2;
+    const auto startX = (COLS - winW) / 2;
+
+    auto* separator = newwin(winH + 2, winW + 2, startY - 1, startX - 1);
+    wrefresh(separator);
+    auto* window = newwin(winH, winW, startY, startX);
+    keypad(window, true);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+    box(window, 0, 0);
+
+    wattron(window, COLOR_PAIR(5));
+    mvwprintw(window, 0, 2, "%s", title.c_str());
+    wattroff(window, COLOR_PAIR(5));
+
+    for(auto i = 0; i < static_cast<int>(lines.size()); ++i) {
+        mvwprintw(window, 2 + i, 2, "%s", lines[i].c_str());
+    }
+
+    const auto btnY = winH - 1;
+    const auto btnX = (winW - countChars(btnLabel)) / 2;
+    mvwprintw(window, btnY, btnX, "%s", btnLabel.c_str());
+    wrefresh(window);
+
+    bool done{};
+    while(!done) {
+        const auto ch = wgetch(window);
+        if(ch == KEY_MOUSE) {
+            MEVENT event{};
+            if(getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
+                const auto clickY = event.y - startY;
+                const auto clickX = event.x - startX;
+                if(clickY == btnY && clickX >= btnX && clickX < btnX + countChars(btnLabel)) {
+                    done = true;
+                }
+            }
+        } else if(ch == 10 || ch == KEY_ENTER || ch == 27) {
+            done = true;
+        }
+    }
+
+    delwin(window);
+    touchwin(stdscr);
+    refresh();
 }
 
 /**
@@ -25,21 +82,23 @@ inline int countChars(const std::string& str) {
 inline std::vector<std::string> popupInput(const std::string& title, const std::vector<std::string>& labels) {
     const auto fieldCount = static_cast<int>(labels.size());
     auto maxLabelLength = 0;
-    for(const auto& label : labels) maxLabelLength = std::max(maxLabelLength, countChars(label));
+
+    for(const auto& label : labels) {
+        maxLabelLength = std::max(maxLabelLength, countChars(label));
+    }
 
     constexpr auto fieldWidth = 32;
     constexpr auto fieldHeight = 1;
     constexpr auto topPadding = 2;
     constexpr auto inputSpacing = 1;
-
     const auto windowHeight = fieldCount * (fieldHeight + inputSpacing) + topPadding + 1;
     const auto windowWidth = maxLabelLength + 1 + 1 + fieldWidth + 4;
     const auto windowY = (LINES - windowHeight) / 2;
     const auto windowX = (COLS - windowWidth) / 2;
 
-    WINDOW* separator = newwin(windowHeight + 2, windowWidth + 2, windowY - 1, windowX - 1);
+    auto* separator = newwin(windowHeight + 2, windowWidth + 2, windowY - 1, windowX - 1);
     wrefresh(separator);
-    WINDOW* window = newwin(windowHeight, windowWidth, windowY, windowX);
+    auto* window = newwin(windowHeight, windowWidth, windowY, windowX);
     keypad(window, TRUE);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
 
@@ -52,7 +111,6 @@ inline std::vector<std::string> popupInput(const std::string& title, const std::
     const auto buttonsStartX = (windowWidth - buttonTotalWidth) / 2;
     const auto acceptButtonX = buttonsStartX;
     const auto cancelButtonX = acceptButtonX + countChars(acceptLabel) + buttonPadding;
-
     std::vector<std::string> fieldValues(fieldCount, "");
     auto currentField = 0;
     auto inputDone = false;
@@ -63,8 +121,9 @@ inline std::vector<std::string> popupInput(const std::string& title, const std::
         box(window, 0, 0);
 
         if(!title.empty()) {
-            const int titleX = (windowWidth - countChars(title)) / 2;
-            mvwprintw(window, 0, titleX, "%s", title.c_str());
+            wattron(window, COLOR_PAIR(5));
+            mvwprintw(window, 0, 2, "%s", title.c_str());
+            wattroff(window, COLOR_PAIR(5));
         }
 
         for(auto i = 0; i < fieldCount; ++i) {
@@ -106,7 +165,7 @@ inline std::vector<std::string> popupInput(const std::string& title, const std::
             case '\n': if(currentField < fieldCount) {
                     currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
                 } else {
-                    accepted = (currentField == fieldCount);
+                    accepted = currentField == fieldCount;
                     inputDone = true;
                 }
                 break;
@@ -117,7 +176,7 @@ inline std::vector<std::string> popupInput(const std::string& title, const std::
                 break;
             case KEY_MOUSE: {
                 MEVENT event;
-                if(getmouse(&event) == OK && (event.bstate & BUTTON1_CLICKED)) {
+                if(getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
                     const int mouseX = event.x - windowX;
                     const int mouseY = event.y - windowY;
                     if(mouseY == buttonY) {

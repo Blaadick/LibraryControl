@@ -23,6 +23,8 @@ private:
 
     static void update();
 
+    static void generateReport();
+
     static void exitAction();
 
     static void removeBookAction();
