@@ -18,7 +18,8 @@ Library::Library() {
             Id INTEGER PRIMARY KEY AUTOINCREMENT,
             Title TEXT NOT NULL,
             Author TEXT,
-            PublishDate DATE
+            PublishDate DATE,
+            ISBN TEXT
         );
     )");
 
@@ -153,7 +154,8 @@ Book Library::getBook(const int id) {
         sqlite3_column_int(stmt, 0),
         sqlite3_column_text(stmt, 1),
         sqlite3_column_text(stmt, 2),
-        toDate(sqlite3_column_text(stmt, 3))
+        toDate(sqlite3_column_text(stmt, 3)),
+        sqlite3_column_text(stmt, 4)
     );
 
     sqlite3_finalize(stmt);
@@ -175,7 +177,8 @@ vector<Book> Library::findBooks(const string& title, const string& author, const
             sqlite3_column_int(stmt, 0),
             sqlite3_column_text(stmt, 1),
             sqlite3_column_text(stmt, 2),
-            toDate(sqlite3_column_text(stmt, 3))
+            toDate(sqlite3_column_text(stmt, 3)),
+            sqlite3_column_text(stmt, 4)
         );
     }
 

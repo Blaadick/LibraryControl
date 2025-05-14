@@ -263,11 +263,11 @@ void MainWindow::update() {
 
 void MainWindow::generateReport() {
     const auto input = popupInput(" Генерация отчёта ", {"Начало", "Конец"});
-    if(input.empty() || input[0].empty()) {
+    if(input.empty()) {
         return;
     }
 
-    const DateTime start = toDateTime(input[0]);
+    const DateTime start = input[1].empty() ? toDate("") : toDateTime(input[0]);
     const DateTime end = input[1].empty() ? floor<seconds>(system_clock::now()) : toDateTime(input[1]);
 
     update();

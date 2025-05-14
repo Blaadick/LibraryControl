@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-inline int cyclicShift(const int currentPos, const int delta, const int maxPositions) {
+inline int cyclicShift(const int currentPos, int delta, const int maxPositions) {
     return maxPositions > 0 ? (currentPos + delta + maxPositions) % maxPositions : 0;
 }
 
