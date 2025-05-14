@@ -9,7 +9,7 @@ ContractsTableView::ContractsTableView(
 }
 
 void ContractsTableView::draw(WINDOW* window) {
-    mvwprintw(window, 1, 2, "Name                     BookTitle                                                        OpeningTime               ClosingTime");
+    mvwprintw(window, 1, 2, "Имя                      Название                                                         Дата открытия             Дата закрытия");
 
     for(auto i = 0; i < contracts.size(); ++i) {
         if(i == getSelectedRow()) {

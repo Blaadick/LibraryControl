@@ -6,18 +6,18 @@
 BooksTableView::BooksTableView(
     const std::vector<Option>& options,
     const std::vector<Book>& books
-) : TableView("Books", options), books(books) {
+) : TableView("Книги", options), books(books) {
     totalRows = static_cast<int>(books.size());
 }
 
 void BooksTableView::draw(WINDOW* window) {
-    mvwprintw(window, 1, 2, "Title                                                            Author                   PublishDate");
+    mvwprintw(window, 1, 2, "Название                                                         Автор                    Дата публикации");
 
     for(auto i = 0; i < books.size(); ++i) {
         if(i == getSelectedRow()) {
             wattron(window, COLOR_PAIR(2));
         }
-        mvwprintw(window, i + 3, 2, "%s", std::format("{:<64} {:<24} {:11%Y.%m.%d}", books[i].title, books[i].author, books[i].publishDate).c_str());
+        mvwprintw(window, i + 3, 2, "%s", std::format("{:<64} {:<24} {:15%Y.%m.%d}", books[i].title, books[i].author, books[i].publishDate).c_str());
         wattroff(window, COLOR_PAIR(2));
     }
 }

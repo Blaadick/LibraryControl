@@ -31,43 +31,48 @@ MainWindow::MainWindow() {
     });
 
     init_color(8, 500, 500, 500);
+    init_color(9, 169, 396, 196);
+    init_color(10, 106, 858, 525);
 
     init_pair(1, COLOR_WHITE, -1);
-    init_pair(2, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_WHITE, 9);
     init_pair(3, 8, -1);
+    init_pair(4, 9, -1);
+    init_pair(5, 10, -1);
+    init_pair(6, COLOR_WHITE, COLOR_BLACK);
 
     UsersTableView usersTable(
         {
-            {"Add User", addUserAction},
-            {"Remove User", removeUserAction},
-            {"Search Users", searchUserAction}
+            {"Добавить пользователя", addUserAction},
+            {"Удалить пользователя", removeUserAction},
+            {"Найти пользователя", searchUserAction}
         },
         Library::findUsers("", "", "")
     );
 
     BooksTableView booksTable(
         {
-            {"Add Book", addBookAction},
-            {"Remove Book", removeBookAction},
-            {"Search Books", searchBooksAction}
+            {"Добавить книгу ", addBookAction},
+            {"Удалить книгу", removeBookAction},
+            {"Найти книгу", searchBooksAction}
         },
         Library::findBooks("", "", "")
     );
 
     ContractsTableView activeContractsTable(
-        "ActiveContracts",
+        "ОткрытыеКонтракты",
         {
-            {"Open Contract", openContractAction},
-            {"Close Contract", closeContractAction},
-            {"Search Contracts", searchContractAction}
+            {"Открыть контракт", openContractAction},
+            {"Закрыть контракт", closeContractAction},
+            {"Найти контракт", searchActiveContractAction}
         },
         Library::findContracts(false, 0, 0, "")
     );
 
     ContractsTableView closedContractsTable(
-        "ClosedContracts",
+        "ЗакрытыеКонтракты",
         {
-            {"Search Contracts", searchContractAction}
+            {"Найти контракт", searchClosedContractAction}
         },
         Library::findContracts(true, 0, 0, "")
     );
@@ -78,8 +83,8 @@ MainWindow::MainWindow() {
     tables.push_back(make_unique<ContractsTableView>(closedContractsTable));
 
     generalOptions = {
-        {"Generate Report", draw},
-        {"Exit", exitAction}
+        {"Сгенерировать отчёт", draw},
+        {"Выйти", exitAction}
     };
 
     optionsMenu = newwin(0, 0, 0, 0);
@@ -191,10 +196,12 @@ void MainWindow::draw() {
     }
 
     if(selectedOptionsTab == 0) {
-        mvwprintw(optionsMenu, 0, 2, " Table ");
-        wattron(optionsMenu, COLOR_PAIR(3));
-        mvwprintw(optionsMenu, 0, 11, " General ");
-        wattroff(optionsMenu, COLOR_PAIR(3));
+        wattron(optionsMenu, COLOR_PAIR(5));
+        mvwprintw(optionsMenu, 0, 2, " Таблица ");
+        wattroff(optionsMenu, COLOR_PAIR(5));
+        wattron(optionsMenu, COLOR_PAIR(4));
+        mvwprintw(optionsMenu, 0, 13, " Общее ");
+        wattroff(optionsMenu, COLOR_PAIR(4));
 
         for(auto i = 0; i < tables[selectedTable]->getOptions().size(); ++i) {
             if(i == tables[selectedTable]->getSelectedOption()) {
@@ -204,10 +211,12 @@ void MainWindow::draw() {
             wattroff(optionsMenu, COLOR_PAIR(2));
         }
     } else {
-        wattron(optionsMenu, COLOR_PAIR(3));
-        mvwprintw(optionsMenu, 0, 2, " Table ");
-        wattroff(optionsMenu, COLOR_PAIR(3));
-        mvwprintw(optionsMenu, 0, 11, " General ");
+        wattron(optionsMenu, COLOR_PAIR(4));
+        mvwprintw(optionsMenu, 0, 2, " Таблица ");
+        wattroff(optionsMenu, COLOR_PAIR(4));
+        wattron(optionsMenu, COLOR_PAIR(5));
+        mvwprintw(optionsMenu, 0, 13, " Общее ");
+        wattroff(optionsMenu, COLOR_PAIR(5));
 
         for(auto i = 0; i < generalOptions.size(); ++i) {
             if(i == selectedGeneralOption) {
@@ -220,14 +229,17 @@ void MainWindow::draw() {
 
     auto currentTableTabPos = -2;
     for(auto i = 0; i < tables.size(); ++i) {
-        const auto previousTitleWidth = i == 0 ? 0 : static_cast<int>(tables[i - 1]->getTitle().length());
+        const auto previousTitleWidth = i == 0 ? 0 : countChars(tables[i - 1]->getTitle());
         currentTableTabPos += previousTitleWidth + 4;
 
         if(i != selectedTable) {
-            wattron(tablesMenu, COLOR_PAIR(3));
+            wattron(tablesMenu, COLOR_PAIR(4));
+        } else {
+            wattron(tablesMenu, COLOR_PAIR(5));
         }
         mvwprintw(tablesMenu, 0, currentTableTabPos, " %s ", tables[i]->getTitle().c_str());
-        wattroff(tablesMenu, COLOR_PAIR(3));
+        wattroff(tablesMenu, COLOR_PAIR(4));
+        wattroff(tablesMenu, COLOR_PAIR(5));
     }
 
     tables[selectedTable]->draw(tablesMenu);
@@ -292,7 +304,7 @@ void MainWindow::closeContractAction() {
 }
 
 void MainWindow::addBookAction() {
-    const auto input = popupInput("Add Book", {"Title", "Author", "PublishDate"});
+    const auto input = popupInput(" Добавление книги ", {"Title", "Author", "PublishDate"});
 
     if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
 
@@ -303,7 +315,7 @@ void MainWindow::addBookAction() {
 }
 
 void MainWindow::addUserAction() {
-    const auto input = popupInput("Add User", {"Name", "PhoneNumber", "PassportId"});
+    const auto input = popupInput("Добавление пользователя", {"Имя", "Номер телефона", "Идент. номер"});
 
     if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
 
@@ -314,9 +326,22 @@ void MainWindow::addUserAction() {
 }
 
 void MainWindow::openContractAction() {
-    auto input = popupInput("Open Contract", {"UserId", "BookId", "Duration", "OpenTime"});
+    auto input = popupInput("Открытие контракта", {"Имя пользователя", "Название книги", "Длительность", "Дата открытия"});
 
     if(input.empty() || input[0].empty() || input[1].empty()) return;
+
+    auto userId = 0;
+    auto bookId = 0;
+
+    const auto foundUsers = Library::findUsers(input[0], "", "");
+    if(!foundUsers.empty()) {
+        userId = foundUsers[0].id;
+    }
+
+    const auto foundBooks = Library::findBooks(input[1], "", "");
+    if(!foundBooks.empty()) {
+        bookId = foundBooks[0].id;
+    }
 
     if(input[2].empty()) {
         input[2] = "30";
@@ -326,13 +351,13 @@ void MainWindow::openContractAction() {
         input[3] = toString(chrono::floor<chrono::seconds>(chrono::system_clock::now()));
     }
 
-    Library::openContract(stoi(input[0]), stoi(input[1]), chrono::days(stoi(input[2])), toDateTime(input[3]));
+    Library::openContract(userId, bookId, chrono::days(stoi(input[2])), toDateTime(input[3]));
     const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
     contractsTableView->updateData(Library::findContracts(false, 0, 0, ""));
 }
 
 void MainWindow::searchBooksAction() {
-    const auto input = popupInput("Search for Books", {"Title", "Author", "Publish date"});
+    const auto input = popupInput("Поиск книг", {"Title", "Author", "Publish date"});
     if(input.empty()) return;
 
     const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
@@ -342,7 +367,7 @@ void MainWindow::searchBooksAction() {
 }
 
 void MainWindow::searchUserAction() {
-    const auto input = popupInput("Search for Users", {"Name", "Phone Number", "Passport id"});
+    const auto input = popupInput("Поиск пользователей", {"Name", "Phone Number", "Passport id"});
     if(input.empty()) return;
 
     const auto usersTableView = dynamic_cast<UsersTableView*>(tables[selectedTable].get());
@@ -351,17 +376,54 @@ void MainWindow::searchUserAction() {
     );
 }
 
-void MainWindow::searchContractAction() {
-    const auto input = popupInput("Search for Contract", {"Closed", "User name", "Book title", "Open time"});
-    if(input.empty()) return;
+void MainWindow::searchActiveContractAction() {
+    const auto input = popupInput("Поиск контрактов", {"User name", "Book title", "Время открытия"});
 
-    bool isClosed = (input[0] == "1");
-    int uid = input[1].empty() ? 0 : stoi(input[1]);
-    int bid = input[2].empty() ? 0 : stoi(input[2]);
-    const string& openTime = input[3];
+    auto userId = 0;
+    auto bookId = 0;
+
+    if(!input[0].empty()) {
+        const auto foundUsers = Library::findUsers(input[0], "", "");
+        if(!foundUsers.empty()) {
+            userId = foundUsers[0].id;
+        }
+    }
+
+    if(!input[1].empty()) {
+        const auto foundBooks = Library::findBooks(input[1], "", "");
+        if(!foundBooks.empty()) {
+            bookId = foundBooks[0].id;
+        }
+    }
 
     const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
     contractsTableView->updateData(
-        Library::findContracts(isClosed, uid, bid, openTime)
+        Library::findContracts(false, userId, bookId, input[2])
+    );
+}
+
+void MainWindow::searchClosedContractAction() {
+    const auto input = popupInput("Поиск контрактов", {"User name", "Book title", "Время открытия"});
+
+    auto userId = 0;
+    auto bookId = 0;
+
+    if(!input[0].empty()) {
+        const auto foundUsers = Library::findUsers(input[0], "", "");
+        if(!foundUsers.empty()) {
+            userId = foundUsers[0].id;
+        }
+    }
+
+    if(!input[1].empty()) {
+        const auto foundBooks = Library::findBooks(input[1], "", "");
+        if(!foundBooks.empty()) {
+            bookId = foundBooks[0].id;
+        }
+    }
+
+    const auto contractsTableView = dynamic_cast<ContractsTableView*>(tables[selectedTable].get());
+    contractsTableView->updateData(
+        Library::findContracts(true, userId, bookId, input[2])
     );
 }

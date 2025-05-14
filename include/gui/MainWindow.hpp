@@ -37,17 +37,11 @@ private:
 
     static void openContractAction();
 
-    static void getBookAction();
-
-    static void getUserAction();
-
-    static void getActiveContractAction();
-
-    static void getClosedContractAction();
-
     static void searchBooksAction();
 
     static void searchUserAction();
 
-    static void searchContractAction();
+    static void searchActiveContractAction();
+
+    static void searchClosedContractAction();
 };

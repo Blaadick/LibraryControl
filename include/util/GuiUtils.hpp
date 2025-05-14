@@ -9,96 +9,142 @@ inline int cyclicShift(const int currentPos, const int delta, const int maxPosit
     return maxPositions > 0 ? (currentPos + delta + maxPositions) % maxPositions : 0;
 }
 
+inline int countChars(const std::string& str) {
+    auto char_count = 0;
+    for(const char c : str) {
+        if((c & 0xC0) != 0x80) {
+            ++char_count;
+        }
+    }
+    return char_count;
+}
+
+/**
+ * My desperate measure. This, like half of all code, is not designed to be maintained.
+ */
 inline std::vector<std::string> popupInput(const std::string& title, const std::vector<std::string>& labels) {
-    int n = labels.size();
-    int ml = 0;
-    for(const auto& s : labels) if((int) s.size() > ml) ml = s.size();
-    const int fw = 32, fh = 1, py = 2;
-    int h = n * (fh + 1) + py + 1;
-    int w = ml + 1 + 1 + fw + 2;
-    int y0 = (LINES - h) / 2;
-    int x0 = (COLS - w) / 2;
+    const auto fieldCount = static_cast<int>(labels.size());
+    auto maxLabelLength = 0;
+    for(const auto& label : labels) maxLabelLength = std::max(maxLabelLength, countChars(label));
 
-    WINDOW* win = newwin(h, w, y0, x0);
-    keypad(win, TRUE);
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, NULL);
+    constexpr auto fieldWidth = 32;
+    constexpr auto fieldHeight = 1;
+    constexpr auto topPadding = 2;
+    constexpr auto inputSpacing = 1;
 
-    std::string ok = " Принять ", cn = " Отмена ";
-    int bs = 4, bc = 2, bt = ok.size() + cn.size() + bs;
-    int by = h - 1, bx0 = (w - bt) / 2, ox = bx0 + 8, cx = ox + ok.size() + bs;
+    const auto windowHeight = fieldCount * (fieldHeight + inputSpacing) + topPadding + 1;
+    const auto windowWidth = maxLabelLength + 1 + 1 + fieldWidth + 4;
+    const auto windowY = (LINES - windowHeight) / 2;
+    const auto windowX = (COLS - windowWidth) / 2;
 
-    std::vector<std::string> vals(n, "");
-    int cur = 0;
-    bool done = false, oked = false;
-    auto draw = [&] {
-        werase(win);
-        box(win, 0, 0);
+    WINDOW* separator = newwin(windowHeight + 2, windowWidth + 2, windowY - 1, windowX - 1);
+    wrefresh(separator);
+    WINDOW* window = newwin(windowHeight, windowWidth, windowY, windowX);
+    keypad(window, TRUE);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+
+    const std::string acceptLabel = " [Принять] ";
+    const std::string cancelLabel = " [Отмена] ";
+    constexpr auto buttonCount = 2;
+    constexpr auto buttonPadding = 4;
+    const auto buttonTotalWidth = countChars(acceptLabel) + countChars(cancelLabel) + buttonPadding;
+    const auto buttonY = windowHeight - 1;
+    const auto buttonsStartX = (windowWidth - buttonTotalWidth) / 2;
+    const auto acceptButtonX = buttonsStartX;
+    const auto cancelButtonX = acceptButtonX + countChars(acceptLabel) + buttonPadding;
+
+    std::vector<std::string> fieldValues(fieldCount, "");
+    auto currentField = 0;
+    auto inputDone = false;
+    auto accepted = false;
+
+    auto drawWindow = [&] {
+        werase(window);
+        box(window, 0, 0);
+
         if(!title.empty()) {
-            int tx = (w - title.size()) / 2;
-            mvwprintw(win, 0, tx, "%s", title.c_str());
+            const int titleX = (windowWidth - countChars(title)) / 2;
+            mvwprintw(window, 0, titleX, "%s", title.c_str());
         }
-        for(int i = 0; i < n; i++) {
-            int y = py + i * (fh + 1), lx = 1 + (ml - labels[i].size());
-            mvwprintw(win, y, lx, "%s:", labels[i].c_str());
-            if(cur == i)
-                wattron(win, A_REVERSE);
-            mvwprintw(win, y, ml + 2, "%-*s", fw, vals[i].c_str());
-            if(cur == i)
-                wattroff(win, A_REVERSE);
+
+        for(auto i = 0; i < fieldCount; ++i) {
+            const int labelY = topPadding + i * (fieldHeight + inputSpacing);
+            const int labelX = 2 + (maxLabelLength - countChars(labels[i]));
+            mvwprintw(window, labelY, labelX, "%s:", labels[i].c_str());
+
+            if(currentField == i)
+                wattron(window, COLOR_PAIR(2));
+            mvwprintw(window, labelY, maxLabelLength + 4, "%-*s", fieldWidth, fieldValues[i].c_str());
+            if(currentField == i)
+                wattroff(window, COLOR_PAIR(2));
         }
-        if(cur == n)
-            wattron(win, A_REVERSE);
-        mvwprintw(win, by, ox, "%s", ok.c_str());
-        if(cur == n)
-            wattroff(win, A_REVERSE);
-        if(cur == n + 1)
-            wattron(win, A_REVERSE);
-        mvwprintw(win, by, cx, "%s", cn.c_str());
-        if(cur == n + 1)
-            wattroff(win, A_REVERSE);
-        wrefresh(win);
+
+        if(currentField == fieldCount)
+            wattron(window, COLOR_PAIR(2));
+        mvwprintw(window, buttonY, acceptButtonX, "%s", acceptLabel.c_str());
+        if(currentField == fieldCount)
+            wattroff(window, COLOR_PAIR(2));
+
+        if(currentField == fieldCount + 1)
+            wattron(window, COLOR_PAIR(2));
+        mvwprintw(window, buttonY, cancelButtonX, "%s", cancelLabel.c_str());
+        if(currentField == fieldCount + 1)
+            wattroff(window, COLOR_PAIR(2));
+
+        wrefresh(window);
     };
-    draw();
-    while(!done) {
-        int ch = wgetch(win);
+
+    drawWindow();
+
+    while(!inputDone) {
+        const int ch = wgetch(window);
         switch(ch) {
-            case '\t': cur = cyclicShift(cur, 1, n + bc);
+            case '\t': currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
                 break;
-            case KEY_BTAB: cur = cyclicShift(cur, -1, n + bc);
+            case KEY_BTAB: currentField = cyclicShift(currentField, -1, fieldCount + buttonCount);
                 break;
-            case KEY_LEFT:
-            case KEY_RIGHT: if(cur >= n)cur = cyclicShift(cur - n, ch == KEY_LEFT ? -1 : 1, bc) + n;
-                break;
-            case '\n': if(cur < n)cur = cyclicShift(cur, 1, n + bc);
-                else {
-                    oked = (cur == n);
-                    done = true;
+            case '\n': if(currentField < fieldCount) {
+                    currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
+                } else {
+                    accepted = (currentField == fieldCount);
+                    inputDone = true;
                 }
                 break;
-            case 27: done = true;
+            case 27: inputDone = true;
                 break;
             case KEY_BACKSPACE:
-            case 127: if(cur < n && !vals[cur].empty()) vals[cur].pop_back();
+            case 127: if(currentField < fieldCount && !fieldValues[currentField].empty()) fieldValues[currentField].pop_back();
                 break;
             case KEY_MOUSE: {
-                MEVENT e;
-                if(getmouse(&e) == OK && (e.bstate & BUTTON1_CLICKED)) {
-                    int mx = e.x - x0, my = e.y - y0;
-                    if(my == by) {
-                        if(mx >= ox && mx < ox + ok.size()) {
-                            oked = true;
-                            done = true;
-                        } else if(mx >= cx && mx < cx + cn.size()) done = true;
-                    } else for(int i = 0; i < n; i++) if(my == py + i * (fh + 1)) cur = i;
+                MEVENT event;
+                if(getmouse(&event) == OK && (event.bstate & BUTTON1_CLICKED)) {
+                    const int mouseX = event.x - windowX;
+                    const int mouseY = event.y - windowY;
+                    if(mouseY == buttonY) {
+                        if(mouseX >= acceptButtonX && mouseX < acceptButtonX + countChars(acceptLabel)) {
+                            accepted = true;
+                            inputDone = true;
+                        } else if(mouseX >= cancelButtonX && mouseX < cancelButtonX + countChars(cancelLabel)) {
+                            inputDone = true;
+                        }
+                    } else {
+                        for(auto i = 0; i < fieldCount; ++i) {
+                            if(mouseY == topPadding + i * (fieldHeight + inputSpacing)) currentField = i;
+                        }
+                    }
                 }
+                break;
             }
-            break;
-            default: if(cur < n && isprint(ch) && vals[cur].size() < fw) vals[cur].push_back(ch);
+            default: if(currentField < fieldCount && isprint(ch) && countChars(fieldValues[currentField]) < fieldWidth) fieldValues[currentField].push_back(static_cast<char>(ch));
         }
-        draw();
+
+        drawWindow();
     }
-    werase(win);
-    wrefresh(win);
-    delwin(win);
-    return oked ? vals : std::vector<std::string>();
+
+    werase(window);
+    wrefresh(window);
+    delwin(window);
+    delwin(separator);
+
+    return accepted ? fieldValues : std::vector<std::string>();
 }
