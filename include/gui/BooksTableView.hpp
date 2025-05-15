@@ -16,10 +16,10 @@ public:
 private:
     std::vector<Book> books;
     std::vector<Book> originalBooks;
-    static constexpr int TITLE_COL_POS = 2;
-    static constexpr int AUTHOR_COL_POS = 67;
-    static constexpr int DATE_COL_POS = 91;
-    static constexpr int ISBN_COL_POS = 109;
+    static constexpr auto TITLE_COL_POS = 2;
+    static constexpr auto AUTHOR_COL_POS = 67;
+    static constexpr auto DATE_COL_POS = 92;
+    static constexpr auto ISBN_COL_POS = 111;
 
     enum class BookColumn {
         Title = 0,

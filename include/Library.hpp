@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 #include <sqlite/sqlite3.h>
-#include "util/DateUtils.hpp"
 #include "data/Book.hpp"
 #include "data/Contract.hpp"
 #include "data/User.hpp"
+#include "util/DateUtils.hpp"
 
 class Library final {
 public:
@@ -14,11 +14,24 @@ public:
 
     ~Library();
 
-    static void addBook(const std::string& title, const std::string& author, const std::string& publishDate);
+    static void addBook(
+        const std::string& title,
+        const std::string& author,
+        const std::string& publishDate,
+        const std::string& isbn
+    );
 
-    static void addUser(const std::string& name, const std::string& phoneNumber, const std::string& passportId);
+    static void addUser(
+        const std::string& name,
+        const std::string& phoneNumber,
+        const std::string& passportId
+    );
 
-    static void openContract(int userId, int bookId, const std::chrono::days& contractDuration, const DateTime& openingTime);
+    static void openContract(
+        int userId, int bookId,
+        const std::chrono::days& contractDuration,
+        const DateTime& openingTime
+    );
 
     static void removeBook(int id);
 

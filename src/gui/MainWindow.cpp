@@ -4,6 +4,7 @@
 #include <csignal>
 #include <functional>
 #include <ncurses.h>
+#include <format>
 #include "Library.hpp"
 #include "gui/BooksTableView.hpp"
 #include "gui/ContractsTableView.hpp"
@@ -292,37 +293,36 @@ void MainWindow::generateReport() {
         return;
     }
 
-    const DateTime start = input[1].empty() ? toDate("") : toDateTime(input[0]);
+    const DateTime start = toDateTime(input[0]);
     const DateTime end = input[1].empty() ? floor<seconds>(system_clock::now()) : toDateTime(input[1]);
 
     update();
 
-    const auto openedContracts = Library::findContracts(false, 0, 0, "");
-    const auto closedContracts = Library::findContracts(true, 0, 0, "");
+    auto totalContracts = 0;
+    auto activeCount = 0;
 
-    auto received = 0;
-    for(const auto& contract : openedContracts) {
+    for(const auto& contract : Library::findContracts(false, 0, 0, "")) {
         if(contract.openingTime >= start && contract.openingTime <= end) {
-            ++received;
+            ++totalContracts;
+            ++activeCount;
         }
     }
 
-    auto returned = 0;
-    for(const auto& contract : closedContracts) {
+    auto closedCount = 0;
+    for(const auto& contract : Library::findContracts(true, 0, 0, "")) {
         if(contract.closingTime >= start && contract.closingTime <= end) {
-            ++returned;
+            ++totalContracts;
+            ++closedCount;
         }
     }
-
-    const int notReturned = received - returned;
 
     popupOutput(
         " Отчёт ",
         {
-            format("Книг выдано: {:<3}", received),
-            "────────────────────",
-            format("Книг возвращено: {:<3}", returned),
-            format("Не возвращено: {:<3}", notReturned)
+            "Всего контрактов: " + to_string(totalContracts),
+            "───────────────────────",
+            "Активных контрактов: " + to_string(activeCount),
+            "Закрытых контрактов: " + to_string(closedCount)
         }
     );
 }
@@ -371,11 +371,11 @@ void MainWindow::closeContractAction() {
 }
 
 void MainWindow::addBookAction() {
-    const auto input = popupInput(" Добавление книги ", {"Title", "Author", "PublishDate"});
+    const auto input = popupInput(" Добавление книги ", {"Title", "Author", "PublishDate", "ISBN"});
 
-    if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty()) return;
+    if(input.empty() || input[0].empty() || input[1].empty() || input[2].empty() || input[3].empty()) return;
 
-    Library::addBook(input[0], input[1], input[2]);
+    Library::addBook(input[0], input[1], input[2], input[3]);
 
     const auto booksTableView = dynamic_cast<BooksTableView*>(tables[selectedTable].get());
     booksTableView->updateData(Library::findBooks("", "", ""));

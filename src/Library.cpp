@@ -19,7 +19,7 @@ Library::Library() {
             Title TEXT NOT NULL,
             Author TEXT,
             PublishDate DATE,
-            ISBN TEXT
+            Isbn TEXT NOT NULL
         );
     )");
 
@@ -52,12 +52,13 @@ Library::~Library() {
     sqlite3_close(db);
 }
 
-void Library::addBook(const string& title, const string& author, const string& publishDate) {
+void Library::addBook(const string& title, const string& author, const string& publishDate, const string& isbn) {
     sqlite3_stmt* stmt;
-    sqlite3_prepare_v2(db, "INSERT INTO Books (Title, Author, PublishDate) VALUES (?, ?, ?)", -1, &stmt, nullptr);
+    sqlite3_prepare_v2(db, "INSERT INTO Books (Title, Author, PublishDate, Isbn) VALUES (?, ?, ?, ?)", -1, &stmt, nullptr);
     sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 2, author.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_bind_text(stmt, 3, publishDate.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, isbn.c_str(), -1, SQLITE_TRANSIENT);
     sqlite3_step(stmt);
     sqlite3_finalize(stmt);
 }

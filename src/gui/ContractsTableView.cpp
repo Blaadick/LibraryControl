@@ -80,13 +80,13 @@ bool ContractsTableView::handleHeaderClick(int x, int y) {
 
     if(sortColumn == static_cast<int>(clickedColumn)) {
         switch(sortOrder) {
-        case SortOrder::None: sortOrder = SortOrder::Ascending;
-            break;
-        case SortOrder::Ascending: sortOrder = SortOrder::Descending;
-            break;
-        case SortOrder::Descending: sortOrder = SortOrder::None;
-            sortColumn = -1;
-            break;
+            case SortOrder::None: sortOrder = SortOrder::Ascending;
+                break;
+            case SortOrder::Ascending: sortOrder = SortOrder::Descending;
+                break;
+            case SortOrder::Descending: sortOrder = SortOrder::None;
+                sortColumn = -1;
+                break;
         }
     } else {
         sortColumn = static_cast<int>(clickedColumn);
@@ -108,11 +108,11 @@ void ContractsTableView::sortContracts() {
         const bool ascending = sortOrder == SortOrder::Ascending;
 
         switch(static_cast<ContractColumn>(sortColumn)) {
-        case ContractColumn::UserName: return ascending ? (a.user.name.compare(b.user.name) < 0) : (a.user.name.compare(b.user.name) > 0);
-        case ContractColumn::BookTitle: return ascending ? (a.book.title.compare(b.book.title) < 0) : (a.book.title.compare(b.book.title) > 0);
-        case ContractColumn::OpeningTime: return ascending ? (a.openingTime < b.openingTime) : (a.openingTime > b.openingTime);
-        case ContractColumn::ClosingTime: return ascending ? (a.closingTime < b.closingTime) : (a.closingTime > b.closingTime);
-        default: return false;
+            case ContractColumn::UserName: return ascending ? (a.user.name.compare(b.user.name) < 0) : (a.user.name.compare(b.user.name) > 0);
+            case ContractColumn::BookTitle: return ascending ? (a.book.title.compare(b.book.title) < 0) : (a.book.title.compare(b.book.title) > 0);
+            case ContractColumn::OpeningTime: return ascending ? (a.openingTime < b.openingTime) : (a.openingTime > b.openingTime);
+            case ContractColumn::ClosingTime: return ascending ? (a.closingTime < b.closingTime) : (a.closingTime > b.closingTime);
+            default: return false;
         }
     });
 }

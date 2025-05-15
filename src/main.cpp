@@ -15,8 +15,4 @@ int main() {
         if(key == 27) break;
         MainWindow::handleInput(key);
     }
-
-    // for(const auto& a : Library::findContracts(false, 0, 0, "2024-10-09")) {
-    //     cout << a.user.name << " | " << a.book.title << endl;
-    // }
 }

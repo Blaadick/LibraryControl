@@ -53,7 +53,7 @@ void BooksTableView::draw(WINDOW* window) {
         if(i == getSelectedRow()) {
             wattron(window, COLOR_PAIR(2));
         }
-        mvwprintw(window, i + 3, 2, "%s", format("{:<64} {:<24} {:18%Y.%m.%d} {}", books[i].title, books[i].author, books[i].publishDate, books[i].Isbn).c_str());
+        mvwprintw(window, i + 3, 2, "%s", format("{:<64} {:<24} {:18%Y.%m.%d} {}", books[i].title, books[i].author, books[i].publishDate, books[i].isbn).c_str());
         wattroff(window, COLOR_PAIR(2));
     }
 }
@@ -75,13 +75,13 @@ bool BooksTableView::handleHeaderClick(int x, int y) {
 
     if(sortColumn == static_cast<int>(clickedColumn)) {
         switch(sortOrder) {
-        case SortOrder::None: sortOrder = SortOrder::Ascending;
-            break;
-        case SortOrder::Ascending: sortOrder = SortOrder::Descending;
-            break;
-        case SortOrder::Descending: sortOrder = SortOrder::None;
-            sortColumn = -1;
-            break;
+            case SortOrder::None: sortOrder = SortOrder::Ascending;
+                break;
+            case SortOrder::Ascending: sortOrder = SortOrder::Descending;
+                break;
+            case SortOrder::Descending: sortOrder = SortOrder::None;
+                sortColumn = -1;
+                break;
         }
     } else {
         sortColumn = static_cast<int>(clickedColumn);
@@ -111,11 +111,11 @@ void BooksTableView::sortBooks() {
         const bool ascending = sortOrder == SortOrder::Ascending;
 
         switch(static_cast<BookColumn>(sortColumn)) {
-        case BookColumn::Title: return ascending ? (a.title.compare(b.title) < 0) : (a.title.compare(b.title) > 0);
-        case BookColumn::Author: return ascending ? (a.author.compare(b.author) < 0) : (a.author.compare(b.author) > 0);
-        case BookColumn::PublishDate: return ascending ? (a.publishDate < b.publishDate) : (a.publishDate > b.publishDate);
-        case BookColumn::ISBN: return ascending ? (a.Isbn.compare(b.Isbn) < 0) : (a.Isbn.compare(b.Isbn) > 0);
-        default: return false;
+            case BookColumn::Title: return ascending ? (a.title.compare(b.title) < 0) : (a.title.compare(b.title) > 0);
+            case BookColumn::Author: return ascending ? (a.author.compare(b.author) < 0) : (a.author.compare(b.author) > 0);
+            case BookColumn::PublishDate: return ascending ? (a.publishDate < b.publishDate) : (a.publishDate > b.publishDate);
+            case BookColumn::ISBN: return ascending ? (a.isbn.compare(b.isbn) < 0) : (a.isbn.compare(b.isbn) > 0);
+            default: return false;
         }
     });
 }
