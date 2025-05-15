@@ -6,6 +6,12 @@
 #include <string>
 #include "Option.hpp"
 
+enum class SortOrder {
+    None,
+    Ascending,
+    Descending
+};
+
 class TableView {
 public:
     virtual ~TableView() = default;
@@ -30,8 +36,15 @@ public:
 
     void executeSelectedOption() const;
 
+    // Handle click on a column header
+    virtual bool handleHeaderClick(int x, int y) {
+        return false;
+    }
+
 protected:
     int totalRows = 0;
+    int sortColumn = -1; // -1 means no sorting
+    SortOrder sortOrder = SortOrder::None;
 
 private:
     std::string title;

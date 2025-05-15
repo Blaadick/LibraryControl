@@ -158,43 +158,43 @@ inline std::vector<std::string> popupInput(const std::string& title, const std::
     while(!inputDone) {
         const int ch = wgetch(window);
         switch(ch) {
-            case '\t': currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
-                break;
-            case KEY_BTAB: currentField = cyclicShift(currentField, -1, fieldCount + buttonCount);
-                break;
-            case '\n': if(currentField < fieldCount) {
-                    currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
+        case '\t': currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
+            break;
+        case KEY_BTAB: currentField = cyclicShift(currentField, -1, fieldCount + buttonCount);
+            break;
+        case '\n': if(currentField < fieldCount) {
+                currentField = cyclicShift(currentField, 1, fieldCount + buttonCount);
+            } else {
+                accepted = currentField == fieldCount;
+                inputDone = true;
+            }
+            break;
+        case 27: inputDone = true;
+            break;
+        case KEY_BACKSPACE:
+        case 127: if(currentField < fieldCount && !fieldValues[currentField].empty()) fieldValues[currentField].pop_back();
+            break;
+        case KEY_MOUSE: {
+            MEVENT event;
+            if(getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
+                const int mouseX = event.x - windowX;
+                const int mouseY = event.y - windowY;
+                if(mouseY == buttonY) {
+                    if(mouseX >= acceptButtonX && mouseX < acceptButtonX + countChars(acceptLabel)) {
+                        accepted = true;
+                        inputDone = true;
+                    } else if(mouseX >= cancelButtonX && mouseX < cancelButtonX + countChars(cancelLabel)) {
+                        inputDone = true;
+                    }
                 } else {
-                    accepted = currentField == fieldCount;
-                    inputDone = true;
-                }
-                break;
-            case 27: inputDone = true;
-                break;
-            case KEY_BACKSPACE:
-            case 127: if(currentField < fieldCount && !fieldValues[currentField].empty()) fieldValues[currentField].pop_back();
-                break;
-            case KEY_MOUSE: {
-                MEVENT event;
-                if(getmouse(&event) == OK && event.bstate & BUTTON1_CLICKED) {
-                    const int mouseX = event.x - windowX;
-                    const int mouseY = event.y - windowY;
-                    if(mouseY == buttonY) {
-                        if(mouseX >= acceptButtonX && mouseX < acceptButtonX + countChars(acceptLabel)) {
-                            accepted = true;
-                            inputDone = true;
-                        } else if(mouseX >= cancelButtonX && mouseX < cancelButtonX + countChars(cancelLabel)) {
-                            inputDone = true;
-                        }
-                    } else {
-                        for(auto i = 0; i < fieldCount; ++i) {
-                            if(mouseY == topPadding + i * (fieldHeight + inputSpacing)) currentField = i;
-                        }
+                    for(auto i = 0; i < fieldCount; ++i) {
+                        if(mouseY == topPadding + i * (fieldHeight + inputSpacing)) currentField = i;
                     }
                 }
-                break;
             }
-            default: if(currentField < fieldCount && isprint(ch) && countChars(fieldValues[currentField]) < fieldWidth) fieldValues[currentField].push_back(static_cast<char>(ch));
+            break;
+        }
+        default: if(currentField < fieldCount && isprint(ch) && countChars(fieldValues[currentField]) < fieldWidth) fieldValues[currentField].push_back(static_cast<char>(ch));
         }
 
         drawWindow();

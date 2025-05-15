@@ -27,6 +27,12 @@ MainWindow::MainWindow() {
     use_default_colors();
     keypad(stdscr, true);
     curs_set(0);
+
+    mousemask(ALL_MOUSE_EVENTS, nullptr);
+    mouseinterval(0);
+
+    printf("\033[?1003h");
+
     signal(SIGWINCH, [](int) {
         update();
     });
@@ -95,11 +101,30 @@ MainWindow::MainWindow() {
 }
 
 MainWindow::~MainWindow() {
+    printf("\033[?1003l");
     endwin();
 }
 
 void MainWindow::handleInput(const int key) {
     switch(key) {
+        case KEY_MOUSE: {
+            MEVENT event;
+            if(getmouse(&event) == OK) {
+                if((event.bstate & BUTTON1_PRESSED || event.bstate & BUTTON1_CLICKED) &&
+                    wenclose(tablesMenu, event.y, event.x)) {
+                    int relY = event.y - getbegy(tablesMenu);
+                    int relX = event.x - getbegx(tablesMenu);
+
+                    if(relY == 1 || relY == 2) {
+                        if(tables[selectedTable]->handleHeaderClick(relX, relY)) {
+                            update();
+                            return;
+                        }
+                    }
+                }
+            }
+            break;
+        }
         case '\t': {
             selectedMenu = cyclicShift(selectedMenu, 1, 2);
             break;
